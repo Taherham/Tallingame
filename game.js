@@ -9,7 +9,7 @@
   const H = ROWS * TILE;
 
   const HUMAN_COUNT = 50;
-  const START_PALS = 3;
+  const START_PALS = 0;
 
   const ENTITY_R = 6;
   const CATCH_R = 10;
@@ -134,6 +134,7 @@
         vx: 0,
         vy: 0,
         wanderT: 0,
+        fleeing: false,
         skin: HUMAN_PALETTES[i % HUMAN_PALETTES.length],
       });
     }
@@ -173,18 +174,115 @@
     if (d) { keys[d] = false; e.preventDefault(); }
   });
 
-  document.querySelectorAll('#dpad button').forEach((btn) => {
-    const d = btn.dataset.dir;
-    const on = (ev) => { ev.preventDefault(); keys[d] = true; startIfNeeded(); };
-    const off = (ev) => { ev.preventDefault(); keys[d] = false; };
-    btn.addEventListener('touchstart', on, { passive: false });
-    btn.addEventListener('touchend', off, { passive: false });
-    btn.addEventListener('mousedown', on);
-    btn.addEventListener('mouseup', off);
-    btn.addEventListener('mouseleave', off);
+  // Circular analog joystick: drag the knob, direction + pull distance become the move vector.
+  const joystickBase = document.getElementById('joystick-base');
+  const joystickKnob = document.getElementById('joystick-knob');
+  let joystickActive = false;
+  let joystickVec = { x: 0, y: 0 };
+
+  function updateJoystick(clientX, clientY) {
+    const rect = joystickBase.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    let dx = clientX - cx;
+    let dy = clientY - cy;
+    const d = Math.hypot(dx, dy);
+    const maxR = rect.width / 2 - 6;
+    if (d > maxR) {
+      dx = (dx / d) * maxR;
+      dy = (dy / d) * maxR;
+    }
+    joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+    joystickVec = { x: dx / maxR, y: dy / maxR };
+  }
+
+  function resetJoystick() {
+    joystickActive = false;
+    joystickVec = { x: 0, y: 0 };
+    joystickKnob.style.transform = 'translate(0px, 0px)';
+  }
+
+  joystickBase.addEventListener('pointerdown', (e) => {
+    joystickActive = true;
+    joystickBase.setPointerCapture(e.pointerId);
+    updateJoystick(e.clientX, e.clientY);
+    startIfNeeded();
+    e.preventDefault();
   });
+  joystickBase.addEventListener('pointermove', (e) => {
+    if (!joystickActive) return;
+    updateJoystick(e.clientX, e.clientY);
+    e.preventDefault();
+  });
+  joystickBase.addEventListener('pointerup', resetJoystick);
+  joystickBase.addEventListener('pointercancel', resetJoystick);
+
+  function getInputVector() {
+    if (joystickActive) return joystickVec;
+    let dx = 0, dy = 0;
+    if (keys.up) dy -= 1;
+    if (keys.down) dy += 1;
+    if (keys.left) dx -= 1;
+    if (keys.right) dx += 1;
+    if (dx !== 0 || dy !== 0) {
+      const len = Math.hypot(dx, dy);
+      dx /= len; dy /= len;
+    }
+    return { x: dx, y: dy };
+  }
+
+  // ---------- Audio: synthesized fear screams, no external assets ----------
+  let audioCtx = null, masterGain = null;
+  let activeScreams = 0;
+  const MAX_CONCURRENT_SCREAMS = 5;
+
+  function ensureAudio() {
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      audioCtx = new Ctx();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.22;
+      masterGain.connect(audioCtx.destination);
+    } else if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playScream(px) {
+    if (!audioCtx || activeScreams >= MAX_CONCURRENT_SCREAMS) return;
+    if (Math.random() > 0.5) return;
+    activeScreams++;
+    const now = audioCtx.currentTime;
+    const dur = 0.16 + Math.random() * 0.14;
+
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sawtooth';
+    const baseFreq = 480 + Math.random() * 260;
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, now + dur);
+
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.32, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    let node = gain;
+    if (audioCtx.createStereoPanner) {
+      const pan = audioCtx.createStereoPanner();
+      pan.pan.value = Math.max(-1, Math.min(1, (px / W) * 2 - 1));
+      gain.connect(pan);
+      node = pan;
+    }
+    node.connect(masterGain);
+    osc.connect(gain);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+    osc.onended = () => { activeScreams--; };
+  }
 
   function startIfNeeded() {
+    ensureAudio();
     if (!running && !won) {
       running = true;
       document.getElementById('overlay').classList.add('hidden');
@@ -202,15 +300,10 @@
   }
 
   function updatePlayer() {
-    let dx = 0, dy = 0;
-    if (keys.up) dy -= 1;
-    if (keys.down) dy += 1;
-    if (keys.left) dx -= 1;
-    if (keys.right) dx += 1;
-    if (dx !== 0 || dy !== 0) {
-      const len = Math.hypot(dx, dy);
-      dx = (dx / len) * SPEED_PLAYER;
-      dy = (dy / len) * SPEED_PLAYER;
+    const v = getInputVector();
+    if (v.x !== 0 || v.y !== 0) {
+      const dx = v.x * SPEED_PLAYER;
+      const dy = v.y * SPEED_PLAYER;
       moveEntity(player, dx, dy);
       if (Math.abs(dx) > Math.abs(dy)) player.dir = dx > 0 ? 'right' : 'left';
       else if (dy !== 0) player.dir = dy > 0 ? 'down' : 'up';
@@ -260,12 +353,15 @@
     for (const h of humans) {
       const { entity, d } = nearestZombieTo(h);
       if (d < HUMAN_FLEE_R) {
+        if (!h.fleeing) playScream(h.x);
+        h.fleeing = true;
         const dx = h.x - entity.x, dy = h.y - entity.y;
         const len = Math.hypot(dx, dy) || 1;
         h.vx = (dx / len) * SPEED_HUMAN_FLEE;
         h.vy = (dy / len) * SPEED_HUMAN_FLEE;
         h.wanderT = 0;
       } else {
+        h.fleeing = false;
         h.wanderT -= 1;
         if (h.wanderT <= 0) {
           const angle = Math.random() * Math.PI * 2;
@@ -337,6 +433,18 @@
     ctx.fillRect(ex, ey, 1, 1);
   }
 
+  function drawPlayerGlow(x, y) {
+    const pulse = 0.5 + 0.5 * Math.sin(performance_time() * 0.004);
+    const r = 15 + pulse * 5;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, `rgba(170, 255, 170, ${0.55 + 0.25 * pulse})`);
+    grad.addColorStop(1, 'rgba(170, 255, 170, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   function draw() {
     ctx.drawImage(bg, 0, 0);
 
@@ -349,7 +457,12 @@
       drawHumanoid(p.x, p.y, '#3f7a3f', '#6fae4f', 'down');
     }
 
-    drawHumanoid(player.x, player.y, '#1f5f2f', '#4fae4f', player.dir);
+    drawPlayerGlow(player.x, player.y);
+    ctx.save();
+    ctx.shadowColor = '#9dffa0';
+    ctx.shadowBlur = 8;
+    drawHumanoid(player.x, player.y, '#1f5f2f', '#9dffa0', player.dir);
+    ctx.restore();
   }
 
   // ---------- Main loop ----------

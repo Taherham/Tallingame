@@ -14,19 +14,18 @@ python3 -m http.server 8000
 
 then visit `http://localhost:8000`.
 
-**Controls:** Arrow keys or WASD to move. On touch devices, an on-screen
-d-pad appears.
+**Controls:** Drag the circular joystick, or use arrow keys / WASD.
 
 ## Rules
 
 - The city starts with 50 humans wandering the streets.
-- You start with 3 zombie pals that follow you in formation.
-- Touch a human with you or any pal to infect them — they instantly join
-  your horde and start hunting on their own.
+- You start alone — the glowing zombie is you.
+- Touch a human to infect them — they instantly join your horde and start
+  hunting on their own.
 - Zombie pals autonomously chase any human that wanders within range, and
   fall back into formation around you otherwise.
-- Humans flee when a zombie gets close, so use your growing horde to box
-  them in.
+- Humans flee (screaming) when a zombie gets close, so use your growing
+  horde to box them in.
 - The level ends when all 50 citizens have been infected.
 
 ## Files

@@ -11,25 +11,22 @@
     <h1>Zombie Outbreak</h1>
     <div class="hud">
       <div>Caught: <span id="caught">0</span> / <span id="total">50</span></div>
-      <div>Horde: <span id="horde">4</span></div>
+      <div>Horde: <span id="horde">1</span></div>
     </div>
     <div class="board-wrap">
       <canvas id="board" width="400" height="400"></canvas>
       <div id="overlay" class="overlay">
         <p id="overlay-title">Zombie Outbreak</p>
-        <p id="overlay-msg">You are patient zero. Infect all 50 citizens with your horde of zombies.<br>Arrow keys / WASD to move.</p>
+        <p id="overlay-msg">You are patient zero, alone in the city. Infect citizens to grow your horde &mdash; the glowing one is you.</p>
         <button id="start-btn">Start</button>
       </div>
     </div>
-    <div class="dpad" id="dpad">
-      <button data-dir="up">&#9650;</button>
-      <div class="dpad-row">
-        <button data-dir="left">&#9664;</button>
-        <button data-dir="down">&#9660;</button>
-        <button data-dir="right">&#9654;</button>
+    <div class="joystick" id="joystick">
+      <div class="joystick-base" id="joystick-base">
+        <div class="joystick-knob" id="joystick-knob"></div>
       </div>
     </div>
-    <p class="hint">Get close to a human to infect them &mdash; they'll join your horde and help hunt the rest.</p>
+    <p class="hint">Drag the joystick to move (or use arrow keys / WASD). Get close to a human to infect them &mdash; they'll join your horde and help hunt the rest.</p>
   </div>
   <script src="game.js"></script>
 </body>
