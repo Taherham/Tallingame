@@ -217,6 +217,14 @@
   joystickBase.addEventListener('pointerup', resetJoystick);
   joystickBase.addEventListener('pointercancel', resetJoystick);
 
+  // Safari ignores preventDefault() on pointer events for suppressing native
+  // scroll/bounce; it only respects preventDefault() on the touch event itself.
+  // The page never scrolls, so block touchmove's default action everywhere.
+  document.addEventListener('touchmove', (e) => { e.preventDefault(); }, { passive: false });
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+
   function getInputVector() {
     if (joystickActive) return joystickVec;
     let dx = 0, dy = 0;
