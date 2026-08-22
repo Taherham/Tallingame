@@ -7,6 +7,7 @@
   const ROWS = 25;
   const W = COLS * TILE;
   const H = ROWS * TILE;
+  const RENDER_SCALE = 3; // internal supersampling for crisp, non-pixelated art
 
   const ENTITY_R = 6;
   const FORMATION_R = 26;
@@ -14,6 +15,10 @@
   const PANIC_R = 42;
   const SPEED_HUMAN_WANDER = 0.6;
   const SPEED_PAL_FOLLOW = 1.5;
+
+  const SPRINT_COOLDOWN_MS = 30000;
+  const SPRINT_DURATION_MS = 3000;
+  const SPRINT_MULT = 2;
 
   // Difficulty ramps across 3 levels: more people, a bigger/more alert
   // detection radius, a tighter catch radius, and a denser city each time.
@@ -31,37 +36,49 @@
   // relies on cornering with your horde and cutting off routes, not on
   // out-running people in a straight line (which is mathematically
   // impossible once they're alerted: pursuer must close via geometry).
+  // Sprint is the tactical exception: a short, cooldown-gated burst.
   let SPEED_HUMAN_FLEE = LEVELS[0].fleeSpeed;
   let SPEED_PLAYER = LEVELS[0].fleeSpeed * 0.94;
   let SPEED_PAL_CHASE = LEVELS[0].fleeSpeed * 0.97;
   let HUMAN_FLEE_R = LEVELS[0].fleeRadius;
   let CATCH_R = LEVELS[0].catchRadius;
 
+  // Humans stay dark/muted so they read clearly as "not yours"; every
+  // zombie (you and your horde) is unmistakably bright green.
+  // Deliberately no green anywhere in here -- green means zombie, full stop.
   const HUMAN_PALETTES = [
-    { body: '#c94f4f', head: '#e8b98a' },
-    { body: '#4f8dc9', head: '#f0c9a0' },
-    { body: '#c9a94f', head: '#d9a978' },
-    { body: '#8a4fc9', head: '#e8b98a' },
-    { body: '#4fc98d', head: '#f0c9a0' },
-    { body: '#c94fa0', head: '#d9a978' },
+    { bodyLight: '#5a4a42', bodyDark: '#241c18', headLight: '#7a675a', headDark: '#4a3d34' },
+    { bodyLight: '#3f4a58', bodyDark: '#181d24', headLight: '#5c6b7a', headDark: '#33404c' },
+    { bodyLight: '#4a3f52', bodyDark: '#1d181f', headLight: '#6b5c73', headDark: '#40354a' },
+    { bodyLight: '#5c5449', bodyDark: '#26221c', headLight: '#7d7367', headDark: '#4c453a' },
+    { bodyLight: '#523f3f', bodyDark: '#1f1818', headLight: '#735c5c', headDark: '#4a3333' },
   ];
+  const PAL_COLORS = { bodyLight: '#5be08c', bodyDark: '#175c34', headLight: '#8dffb8', headDark: '#2f8a55', glow: '#4be08c' };
+  const PLAYER_COLORS = { bodyLight: '#bfffce', bodyDark: '#2f9958', headLight: '#e8fff0', headDark: '#57c982' };
 
-  // ---------- Canvas ----------
+  // ---------- Canvas (rendered at RENDER_SCALE for a smooth, non-pixelated look) ----------
   const canvas = document.getElementById('board');
+  canvas.width = W * RENDER_SCALE;
+  canvas.height = H * RENDER_SCALE;
   const ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
+  ctx.scale(RENDER_SCALE, RENDER_SCALE);
+  ctx.imageSmoothingEnabled = true;
 
   const bg = document.createElement('canvas');
-  bg.width = W;
-  bg.height = H;
+  bg.width = W * RENDER_SCALE;
+  bg.height = H * RENDER_SCALE;
   const bctx = bg.getContext('2d');
+  bctx.scale(RENDER_SCALE, RENDER_SCALE);
+  bctx.imageSmoothingEnabled = true;
 
   // ---------- Map: 0 = walkable, 1 = building. Regenerated every level. ----------
   let map = [];
+  let buildingRects = [];
   let walkableTiles = [];
 
   function generateMap(blockCount) {
     const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+    const rects = [];
     let placed = 0, attempts = 0;
     while (placed < blockCount && attempts < 400) {
       attempts++;
@@ -80,9 +97,10 @@
       for (let y = by; y < by + bh; y++) {
         for (let x = bx; x < bx + bw; x++) grid[y][x] = 1;
       }
+      rects.push({ x: bx, y: by, w: bw, h: bh });
       placed++;
     }
-    return grid;
+    return { grid, rects };
   }
 
   function tileAt(px, py) {
@@ -125,26 +143,79 @@
     return desiredAngle;
   }
 
+  // ---------- City rendering: facades with lit/broken windows, sidewalks, grime ----------
   function renderMap() {
-    for (let y = 0; y < ROWS; y++) {
-      for (let x = 0; x < COLS; x++) {
-        const px = x * TILE, py = y * TILE;
-        if (map[y][x] === 1) {
-          bctx.fillStyle = ((x + y) % 2 === 0) ? '#3a4550' : '#333d46';
-          bctx.fillRect(px, py, TILE, TILE);
-          bctx.fillStyle = '#242c33';
-          bctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
-          bctx.fillStyle = '#4a5764';
-          bctx.fillRect(px + 3, py + 3, 3, 3);
-          bctx.fillRect(px + TILE - 6, py + 3, 3, 3);
-          bctx.fillRect(px + 3, py + TILE - 6, 3, 3);
-          bctx.fillRect(px + TILE - 6, py + TILE - 6, 3, 3);
-        } else {
-          bctx.fillStyle = '#5c5f55';
-          bctx.fillRect(px, py, TILE, TILE);
-          if (x % 2 === 0) {
-            bctx.fillStyle = '#6a6d61';
-            bctx.fillRect(px + TILE / 2 - 1, py, 2, TILE);
+    bctx.clearRect(0, 0, W, H);
+
+    const roadGrad = bctx.createLinearGradient(0, 0, 0, H);
+    roadGrad.addColorStop(0, '#2b3630');
+    roadGrad.addColorStop(1, '#1c2622');
+    bctx.fillStyle = roadGrad;
+    bctx.fillRect(0, 0, W, H);
+
+    // Subtle asphalt grime so the road isn't a flat fill.
+    for (let i = 0; i < 260; i++) {
+      const gx = Math.random() * W, gy = Math.random() * H;
+      bctx.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.03)';
+      bctx.beginPath();
+      bctx.arc(gx, gy, 1 + Math.random() * 2, 0, Math.PI * 2);
+      bctx.fill();
+    }
+
+    for (const rect of buildingRects) {
+      const px = rect.x * TILE, py = rect.y * TILE;
+      const pw = rect.w * TILE, ph = rect.h * TILE;
+
+      // Sidewalk pad
+      bctx.fillStyle = '#3a463f';
+      bctx.fillRect(px - 3, py - 3, pw + 6, ph + 6);
+
+      // Drop shadow
+      bctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      bctx.fillRect(px + 3, py + 4, pw, ph);
+
+      // Facade (lit from above)
+      const facadeGrad = bctx.createLinearGradient(px, py, px, py + ph);
+      facadeGrad.addColorStop(0, '#48565e');
+      facadeGrad.addColorStop(1, '#252f34');
+      bctx.fillStyle = facadeGrad;
+      bctx.fillRect(px, py, pw, ph);
+
+      // Roof highlight + side shading for a hint of depth
+      bctx.fillStyle = 'rgba(255, 255, 255, 0.10)';
+      bctx.fillRect(px, py, pw, 2);
+      bctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+      bctx.fillRect(px + pw - 3, py, 3, ph);
+      bctx.fillRect(px, py + ph - 3, pw, 3);
+
+      // Windows: one per tile cell, a mix of lit / dark / broken.
+      for (let ty = rect.y; ty < rect.y + rect.h; ty++) {
+        for (let tx = rect.x; tx < rect.x + rect.w; tx++) {
+          const wx = tx * TILE + TILE / 2 - 3;
+          const wy = ty * TILE + TILE / 2 - 3;
+          const roll = Math.random();
+          if (roll < 0.13) {
+            bctx.fillStyle = '#10151a';
+            bctx.fillRect(wx, wy, 6, 6);
+            bctx.strokeStyle = 'rgba(180, 195, 200, 0.5)';
+            bctx.lineWidth = 0.5;
+            bctx.beginPath();
+            bctx.moveTo(wx + 1, wy);
+            bctx.lineTo(wx + 3, wy + 3);
+            bctx.lineTo(wx + 1.5, wy + 4);
+            bctx.lineTo(wx + 5, wy + 6);
+            bctx.stroke();
+          } else if (roll < 0.42) {
+            const wGrad = bctx.createRadialGradient(wx + 3, wy + 3, 0, wx + 3, wy + 3, 5);
+            wGrad.addColorStop(0, '#ffe6a3');
+            wGrad.addColorStop(1, '#e0a94f');
+            bctx.fillStyle = wGrad;
+            bctx.fillRect(wx, wy, 6, 6);
+          } else {
+            bctx.fillStyle = 'rgba(150, 175, 190, 0.35)';
+            bctx.fillRect(wx, wy, 6, 6);
+            bctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+            bctx.fillRect(wx, wy, 2, 6);
           }
         }
       }
@@ -166,6 +237,59 @@
       x: t.x * TILE + TILE / 2,
       y: t.y * TILE + TILE / 2,
     };
+  }
+
+  // ---------- Character sprites, pre-rendered once for performance ----------
+  function makeCharacterSprite(colors) {
+    const w = 20, h = 26;
+    const cx = w / 2, cy = h / 2 + 2;
+    const spr = document.createElement('canvas');
+    spr.width = w * RENDER_SCALE;
+    spr.height = h * RENDER_SCALE;
+    const sctx = spr.getContext('2d');
+    sctx.scale(RENDER_SCALE, RENDER_SCALE);
+    sctx.imageSmoothingEnabled = true;
+
+    if (colors.glow) {
+      const glow = sctx.createRadialGradient(cx, cy - 2, 0, cx, cy - 2, 10);
+      glow.addColorStop(0, colors.glow + '99');
+      glow.addColorStop(1, colors.glow + '00');
+      sctx.fillStyle = glow;
+      sctx.beginPath();
+      sctx.arc(cx, cy - 2, 10, 0, Math.PI * 2);
+      sctx.fill();
+    }
+
+    sctx.beginPath();
+    sctx.ellipse(cx, cy + 7, 5, 2, 0, 0, Math.PI * 2);
+    sctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    sctx.fill();
+
+    const bodyGrad = sctx.createRadialGradient(cx - 1.5, cy - 1, 0, cx, cy + 2, 7);
+    bodyGrad.addColorStop(0, colors.bodyLight);
+    bodyGrad.addColorStop(1, colors.bodyDark);
+    sctx.beginPath();
+    sctx.ellipse(cx, cy + 2, 4.6, 5.6, 0, 0, Math.PI * 2);
+    sctx.fillStyle = bodyGrad;
+    sctx.fill();
+
+    const headGrad = sctx.createRadialGradient(cx - 1.2, cy - 6.5, 0, cx, cy - 5, 5);
+    headGrad.addColorStop(0, colors.headLight);
+    headGrad.addColorStop(1, colors.headDark);
+    sctx.beginPath();
+    sctx.arc(cx, cy - 5, 4.2, 0, Math.PI * 2);
+    sctx.fillStyle = headGrad;
+    sctx.fill();
+
+    return { canvas: spr, w, h, cx, cy };
+  }
+
+  const humanSprites = HUMAN_PALETTES.map((p) => makeCharacterSprite(p));
+  const palSprite = makeCharacterSprite(PAL_COLORS);
+  const playerSprite = makeCharacterSprite(PLAYER_COLORS);
+
+  function drawSprite(sprite, x, y) {
+    ctx.drawImage(sprite.canvas, x - sprite.cx, y - sprite.cy, sprite.w, sprite.h);
   }
 
   // ---------- Best-time tracking (per device, via localStorage) ----------
@@ -199,12 +323,14 @@
   }
 
   // ---------- Game state ----------
-  let player, pals, humans, particles;
+  let player, pals, humans, particles, trail;
   let caught, running;
   let level = 1;
   let stage = 'intro'; // 'intro' | 'playing' | 'levelComplete' | 'gameComplete'
   let levelStartTime = 0;
   let totalElapsed = 0;
+  let sprintCooldownUntil = 0;
+  let sprintActiveUntil = 0;
 
   function setupLevel(n) {
     const cfg = LEVELS[n - 1];
@@ -215,7 +341,9 @@
     HUMAN_FLEE_R = cfg.fleeRadius;
     CATCH_R = cfg.catchRadius;
 
-    map = generateMap(cfg.blockCount);
+    const generated = generateMap(cfg.blockCount);
+    map = generated.grid;
+    buildingRects = generated.rects;
     rebuildWalkableTiles();
     renderMap();
 
@@ -223,6 +351,9 @@
     player = { x: p0.x, y: p0.y, r: ENTITY_R, dir: 'down' };
     pals = [];
     particles = [];
+    trail = [];
+    sprintCooldownUntil = 0;
+    sprintActiveUntil = 0;
 
     humans = [];
     for (let i = 0; i < cfg.humanCount; i++) {
@@ -238,7 +369,7 @@
         fleeing: false,
         fleeJitter: 0,
         fleeJitterT: 0,
-        skin: HUMAN_PALETTES[i % HUMAN_PALETTES.length],
+        sprite: humanSprites[i % humanSprites.length],
       });
     }
 
@@ -268,6 +399,7 @@
   window.addEventListener('keydown', (e) => {
     const d = KEY_MAP[e.code];
     if (d) { keys[d] = true; e.preventDefault(); startIfNeeded(); }
+    if (e.code === 'Space') { e.preventDefault(); tryActivateSprint(); }
   });
   window.addEventListener('keyup', (e) => {
     const d = KEY_MAP[e.code];
@@ -337,6 +469,33 @@
       dx /= len; dy /= len;
     }
     return { x: dx, y: dy };
+  }
+
+  // ---------- Sprint button ----------
+  const sprintBtn = document.getElementById('sprint-btn');
+
+  function tryActivateSprint() {
+    ensureAudio();
+    if (!running) return;
+    const now = performance_time();
+    if (now < sprintCooldownUntil) return;
+    sprintActiveUntil = now + SPRINT_DURATION_MS;
+    sprintCooldownUntil = now + SPRINT_COOLDOWN_MS;
+    playSprintSound();
+  }
+
+  sprintBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    tryActivateSprint();
+  });
+
+  function updateSprintUI() {
+    const now = performance_time();
+    const remain = sprintCooldownUntil - now;
+    const progress = remain <= 0 ? 100 : Math.max(0, 100 - (remain / SPRINT_COOLDOWN_MS) * 100);
+    sprintBtn.style.setProperty('--progress', progress.toFixed(1));
+    sprintBtn.classList.toggle('active', now < sprintActiveUntil);
+    sprintBtn.classList.toggle('ready', remain <= 0 && now >= sprintActiveUntil);
   }
 
   // ---------- Audio: synthesized sounds, no external assets ----------
@@ -420,6 +579,25 @@
     osc.onended = () => { activeInfects--; };
   }
 
+  function playSprintSound() {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const dur = 0.28;
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(950, now + dur * 0.55);
+    osc.frequency.exponentialRampToValueAtTime(280, now + dur);
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.22, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    gain.connect(masterGain);
+    osc.connect(gain);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+  }
+
   function startIfNeeded() {
     ensureAudio();
     if (running) return;
@@ -445,12 +623,17 @@
 
   function updatePlayer() {
     const v = getInputVector();
+    const sprinting = performance_time() < sprintActiveUntil;
     if (v.x !== 0 || v.y !== 0) {
-      const dx = v.x * SPEED_PLAYER;
-      const dy = v.y * SPEED_PLAYER;
+      const mult = sprinting ? SPRINT_MULT : 1;
+      const dx = v.x * SPEED_PLAYER * mult;
+      const dy = v.y * SPEED_PLAYER * mult;
       moveEntity(player, dx, dy);
       if (Math.abs(dx) > Math.abs(dy)) player.dir = dx > 0 ? 'right' : 'left';
       else if (dy !== 0) player.dir = dy > 0 ? 'down' : 'up';
+      if (sprinting) {
+        trail.push({ x: player.x, y: player.y, life: 1 });
+      }
     }
   }
 
@@ -561,7 +744,7 @@
         vy: Math.sin(a) * speed,
         life: 1,
         decay: 0.045 + Math.random() * 0.02,
-        color: Math.random() < 0.55 ? '#7ee787' : '#c94f4f',
+        color: Math.random() < 0.55 ? '#5be08c' : '#c94f4f',
       });
     }
   }
@@ -575,6 +758,9 @@
       p.life -= p.decay;
     }
     particles = particles.filter((p) => p.life > 0);
+
+    for (const t of trail) t.life -= 0.07;
+    trail = trail.filter((t) => t.life > 0);
   }
 
   function finishLevel() {
@@ -622,7 +808,7 @@
       for (const z of zombies) {
         if (dist(h, z) < CATCH_R) {
           wasCaught = true;
-          pals.push({ x: h.x, y: h.y, r: ENTITY_R, hue: 'pal' });
+          pals.push({ x: h.x, y: h.y, r: ENTITY_R });
           caught += 1;
           spawnCatchBurst(h.x, h.y);
           playInfectSound(h.x);
@@ -648,32 +834,30 @@
   }
 
   // ---------- Drawing ----------
-  function drawHumanoid(x, y, bodyColor, headColor, dir) {
-    const bx = Math.round(x - 4), by = Math.round(y - 6);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(bx, by + 9, 8, 2);
-    ctx.fillStyle = bodyColor;
-    ctx.fillRect(bx, by + 4, 8, 6);
-    ctx.fillStyle = headColor;
-    ctx.fillRect(bx + 1, by, 6, 5);
-    ctx.fillStyle = '#fff';
-    let ex = bx + 4, ey = by + 2;
-    if (dir === 'left') ex = bx + 1;
-    else if (dir === 'right') ex = bx + 6;
-    else if (dir === 'up') ey = by + 1;
-    ctx.fillRect(ex, ey, 1, 1);
-  }
-
   function drawPlayerGlow(x, y) {
     const pulse = 0.5 + 0.5 * Math.sin(performance_time() * 0.004);
-    const r = 15 + pulse * 5;
+    const r = 16 + pulse * 5;
     const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, `rgba(170, 255, 170, ${0.55 + 0.25 * pulse})`);
+    grad.addColorStop(0, `rgba(170, 255, 170, ${0.5 + 0.25 * pulse})`);
     grad.addColorStop(1, 'rgba(170, 255, 170, 0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  function drawTrail() {
+    for (const t of trail) {
+      ctx.globalAlpha = Math.max(t.life, 0) * 0.65;
+      const grad = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, 6 * t.life + 1.5);
+      grad.addColorStop(0, '#a8ffc8');
+      grad.addColorStop(1, 'rgba(125, 255, 176, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, 6 * t.life + 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
   }
 
   function drawParticles() {
@@ -686,23 +870,15 @@
   }
 
   function draw() {
-    ctx.drawImage(bg, 0, 0);
+    ctx.drawImage(bg, 0, 0, W, H);
 
-    for (const h of humans) {
-      const dir = Math.abs(h.vx) > Math.abs(h.vy) ? (h.vx > 0 ? 'right' : 'left') : (h.vy > 0 ? 'down' : 'up');
-      drawHumanoid(h.x, h.y, h.skin.body, h.skin.head, dir);
-    }
+    drawTrail();
 
-    for (const p of pals) {
-      drawHumanoid(p.x, p.y, '#3f7a3f', '#6fae4f', 'down');
-    }
+    for (const h of humans) drawSprite(h.sprite, h.x, h.y);
+    for (const p of pals) drawSprite(palSprite, p.x, p.y);
 
     drawPlayerGlow(player.x, player.y);
-    ctx.save();
-    ctx.shadowColor = '#9dffa0';
-    ctx.shadowBlur = 8;
-    drawHumanoid(player.x, player.y, '#1f5f2f', '#9dffa0', player.dir);
-    ctx.restore();
+    drawSprite(playerSprite, player.x, player.y);
 
     drawParticles();
   }
@@ -711,6 +887,7 @@
   function loop() {
     update();
     updateParticles();
+    updateSprintUI();
     draw();
     requestAnimationFrame(loop);
   }
