@@ -49,9 +49,9 @@
   let HUMAN_FLEE_R = LEVELS[0].fleeRadius;
   let CATCH_R = LEVELS[0].catchRadius;
 
-  // Humans stay dark/muted so they read clearly as "not yours"; every
-  // zombie (you and your horde) is unmistakably bright green.
-  // Deliberately no green anywhere in here -- green means zombie, full stop.
+  // Humans stay dark/muted so they read clearly as "not yours"; horde pals
+  // are bright green, and the player is a distinct bright blue so you can
+  // always pick yourself out from your own horde at a glance.
   const HUMAN_PALETTES = [
     { bodyLight: '#5a4a42', bodyDark: '#241c18', headLight: '#7a675a', headDark: '#4a3d34' },
     { bodyLight: '#3f4a58', bodyDark: '#181d24', headLight: '#5c6b7a', headDark: '#33404c' },
