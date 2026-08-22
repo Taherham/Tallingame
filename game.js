@@ -763,6 +763,7 @@
       masterGain = audioCtx.createGain();
       masterGain.gain.value = 0.22;
       masterGain.connect(audioCtx.destination);
+      startMusic();
     } else if (audioCtx.state === 'suspended') {
       audioCtx.resume();
     }
@@ -829,6 +830,52 @@
     osc.onended = () => { activeInfects--; };
   }
 
+  let activeGroans = 0;
+  const MAX_CONCURRENT_GROANS = 3;
+
+  function playZombieGroan(px) {
+    if (!audioCtx || activeGroans >= MAX_CONCURRENT_GROANS) return;
+    activeGroans++;
+    const now = audioCtx.currentTime;
+    const dur = 0.5 + Math.random() * 0.25;
+    const baseFreq = 65 + Math.random() * 25;
+
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 0.75, now + dur);
+
+    // A slow wobble in pitch gives the groan its guttural, undead texture.
+    const lfo = audioCtx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 7 + Math.random() * 3;
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 8;
+    lfo.connect(lfoGain).connect(osc.frequency);
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 550;
+    filter.Q.value = 1.2;
+
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.34, now + 0.09);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    const pan = pannerFor(px);
+    let node = gain;
+    osc.connect(filter).connect(gain);
+    if (pan) { gain.connect(pan); node = pan; }
+    node.connect(masterGain);
+
+    osc.start(now);
+    lfo.start(now);
+    osc.stop(now + dur + 0.05);
+    lfo.stop(now + dur + 0.05);
+    osc.onended = () => { activeGroans--; };
+  }
+
   function playSprintSound() {
     if (!audioCtx) return;
     const now = audioCtx.currentTime;
@@ -846,6 +893,132 @@
     osc.connect(gain);
     osc.start(now);
     osc.stop(now + dur + 0.02);
+  }
+
+  // ---------- Background music: a small procedural sequencer, no audio files ----------
+  // A driving minor-key bass riff plus kick/hat percussion and the occasional
+  // dissonant stinger, scheduled with a lookahead loop so timing stays tight
+  // even if the main render loop stutters.
+  let musicGain = null;
+  let musicStarted = false;
+  let noiseBuffer = null;
+  const MUSIC_BPM = 128;
+  const STEP_DUR = 60 / MUSIC_BPM / 4; // 16th note
+  const SCHEDULE_AHEAD = 0.12;
+  const LOOKAHEAD_MS = 25;
+  let musicStep = 0;
+  let nextStepTime = 0;
+
+  // Low, tense ostinato -- root-heavy with a couple of off-scale passing
+  // tones so it doesn't sit too comfortably. Nulls are rests.
+  const BASS_RIFF = [
+    55.00, null, 55.00, null, 65.41, null, 55.00, null,
+    55.00, null, 55.00, null, 58.27, null, 61.74, null,
+  ];
+
+  function getNoiseBuffer() {
+    if (noiseBuffer) return noiseBuffer;
+    const len = audioCtx.sampleRate; // 1s, reused for every hit
+    noiseBuffer = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    return noiseBuffer;
+  }
+
+  function playMusicKick(time) {
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, time);
+    osc.frequency.exponentialRampToValueAtTime(45, time + 0.15);
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.8, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+    osc.connect(gain).connect(musicGain);
+    osc.start(time);
+    osc.stop(time + 0.2);
+  }
+
+  function playMusicHat(time, vol) {
+    const src = audioCtx.createBufferSource();
+    src.buffer = getNoiseBuffer();
+    const hp = audioCtx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 7000;
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(vol, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+    src.connect(hp).connect(gain).connect(musicGain);
+    src.start(time);
+    src.stop(time + 0.06);
+  }
+
+  function playMusicBassNote(time, freq, dur) {
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, time);
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.Q.value = 5;
+    filter.frequency.setValueAtTime(1100, time);
+    filter.frequency.exponentialRampToValueAtTime(200, time + dur);
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(0.5, time + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+    osc.connect(filter).connect(gain).connect(musicGain);
+    osc.start(time);
+    osc.stop(time + dur + 0.02);
+  }
+
+  function playMusicStinger(time, freq) {
+    const osc1 = audioCtx.createOscillator();
+    osc1.type = 'triangle';
+    osc1.frequency.value = freq;
+    const osc2 = audioCtx.createOscillator();
+    osc2.type = 'triangle';
+    osc2.frequency.value = freq * 1.06; // slight detune for dissonance/tension
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(0.1, time + 0.06);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.6);
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(musicGain);
+    osc1.start(time); osc2.start(time);
+    osc1.stop(time + 0.65); osc2.stop(time + 0.65);
+  }
+
+  function scheduleMusicStep(step, time) {
+    const pos = step % 16;
+    const bar = Math.floor(step / 16) % 4;
+
+    const note = BASS_RIFF[pos];
+    if (note) playMusicBassNote(time, note, STEP_DUR * 1.8);
+
+    if (pos === 0 || pos === 8) playMusicKick(time);
+    if (pos % 2 === 1) playMusicHat(time, pos % 4 === 3 ? 0.16 : 0.07);
+    if (bar === 3 && pos === 14) playMusicStinger(time, 220 * (1 + Math.random() * 0.5));
+  }
+
+  function musicScheduler() {
+    if (!musicStarted) return;
+    while (nextStepTime < audioCtx.currentTime + SCHEDULE_AHEAD) {
+      scheduleMusicStep(musicStep, nextStepTime);
+      nextStepTime += STEP_DUR;
+      musicStep = (musicStep + 1) % 64; // 4-bar loop
+    }
+    setTimeout(musicScheduler, LOOKAHEAD_MS);
+  }
+
+  function startMusic() {
+    if (musicStarted || !audioCtx) return;
+    musicStarted = true;
+    musicGain = audioCtx.createGain();
+    musicGain.gain.value = 0.17;
+    musicGain.connect(masterGain);
+    musicStep = 0;
+    nextStepTime = audioCtx.currentTime + 0.05;
+    musicScheduler();
   }
 
   function startIfNeeded() {
@@ -1072,6 +1245,7 @@
           caught += 1;
           spawnCatchBurst(h.x, h.y);
           playInfectSound(h.x);
+          playZombieGroan(h.x);
           if (pals.length === 1) unlockHordeJoystick();
           break;
         }
