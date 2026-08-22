@@ -60,7 +60,7 @@
     { bodyLight: '#523f3f', bodyDark: '#1f1818', headLight: '#735c5c', headDark: '#4a3333' },
   ];
   const PAL_COLORS = { bodyLight: '#5be08c', bodyDark: '#175c34', headLight: '#8dffb8', headDark: '#2f8a55', glow: '#4be08c' };
-  const PLAYER_COLORS = { bodyLight: '#bfffce', bodyDark: '#2f9958', headLight: '#e8fff0', headDark: '#57c982' };
+  const PLAYER_COLORS = { bodyLight: '#bdeeff', bodyDark: '#1f7aa8', headLight: '#eafcff', headDark: '#3fa9d6', glow: '#5cc8ff' };
 
   // ---------- Canvas (rendered at RENDER_SCALE for a smooth, non-pixelated look) ----------
   const canvas = document.getElementById('board');
@@ -285,11 +285,6 @@
   }
 
   function drawStreetlight(light) {
-    bctx.fillStyle = 'rgba(255, 220, 150, 0.12)';
-    bctx.beginPath();
-    bctx.arc(light.x, light.y, 11, 0, Math.PI * 2);
-    bctx.fill();
-
     bctx.fillStyle = '#2a2f2c';
     bctx.fillRect(light.x - 0.8, light.y - 9, 1.6, 10);
     bctx.beginPath();
@@ -1104,8 +1099,8 @@
     const pulse = 0.5 + 0.5 * Math.sin(performance_time() * 0.004);
     const r = 16 + pulse * 5;
     const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, `rgba(170, 255, 170, ${0.5 + 0.25 * pulse})`);
-    grad.addColorStop(1, 'rgba(170, 255, 170, 0)');
+    grad.addColorStop(0, `rgba(120, 210, 255, ${0.5 + 0.25 * pulse})`);
+    grad.addColorStop(1, 'rgba(120, 210, 255, 0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -1116,8 +1111,8 @@
     for (const t of trail) {
       ctx.globalAlpha = Math.max(t.life, 0) * 0.65;
       const grad = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, 6 * t.life + 1.5);
-      grad.addColorStop(0, '#a8ffc8');
-      grad.addColorStop(1, 'rgba(125, 255, 176, 0)');
+      grad.addColorStop(0, '#a8e2ff');
+      grad.addColorStop(1, 'rgba(92, 200, 255, 0)');
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(t.x, t.y, 6 * t.life + 1.5, 0, Math.PI * 2);
