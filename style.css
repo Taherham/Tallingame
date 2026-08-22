@@ -175,10 +175,21 @@ button {
 
 .controls {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: clamp(14px, 6vw, 28px);
+  gap: 14px;
+  width: 500px;
+  max-width: 92vw;
+  max-width: min(92vw, 46vh);
+  max-width: min(92vw, 46dvh);
   padding: 4px 0 6px;
+}
+
+.controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .joystick-base {
