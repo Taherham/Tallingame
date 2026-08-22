@@ -177,7 +177,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: clamp(14px, 6vw, 28px);
   padding: 4px 0 6px;
 }
 
