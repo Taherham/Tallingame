@@ -10,14 +10,16 @@
   <div class="wrap">
     <h1>Zombie Outbreak</h1>
     <div class="hud">
-      <div>Caught: <span id="caught">0</span> / <span id="total">50</span></div>
+      <div>Level <span id="level">1</span>/3</div>
+      <div>Caught: <span id="caught">0</span> / <span id="total">30</span></div>
       <div>Horde: <span id="horde">1</span></div>
+      <div>Time: <span id="time">0:00.0</span></div>
     </div>
     <div class="board-wrap">
       <canvas id="board" width="400" height="400"></canvas>
       <div id="overlay" class="overlay">
         <p id="overlay-title">Zombie Outbreak</p>
-        <p id="overlay-msg">You are patient zero, alone in the city. Infect citizens to grow your horde &mdash; the glowing one is you.</p>
+        <p id="overlay-msg">You are patient zero, alone in the city. Infect citizens to grow your horde &mdash; the glowing one is you. Clear all 3 levels; each one is a fresh city and a bigger crowd.</p>
         <button id="start-btn">Start</button>
       </div>
     </div>
