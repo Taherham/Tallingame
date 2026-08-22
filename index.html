@@ -19,7 +19,7 @@
       <canvas id="board" width="400" height="400"></canvas>
       <div id="overlay" class="overlay">
         <p id="overlay-title">Zombie Outbreak</p>
-        <p id="overlay-msg">You are patient zero, alone in the city. Infect citizens to grow your horde &mdash; the glowing green one is you. Clear all 3 levels; each one is a fresh city and a bigger crowd. Use your sprint when it's charged to close a gap.</p>
+        <p id="overlay-msg">You are patient zero, alone in the city. Infect citizens to grow your horde &mdash; the glowing green one is you. Clear all 3 levels; each one is a fresh city and a bigger crowd. Once you infect someone, a second joystick appears so you can point your horde in a direction. Use your sprint when it's charged to close a gap.</p>
         <button id="start-btn">Start</button>
       </div>
     </div>
@@ -29,11 +29,16 @@
           <div class="joystick-knob" id="joystick-knob"></div>
         </div>
       </div>
+      <div class="joystick horde-joystick hidden" id="horde-joystick">
+        <div class="joystick-base" id="horde-joystick-base">
+          <div class="joystick-knob horde-knob" id="horde-joystick-knob"></div>
+        </div>
+      </div>
       <button class="sprint-btn" id="sprint-btn" style="--progress: 100" aria-label="Sprint">
         <span class="sprint-icon">&#9889;</span>
       </button>
     </div>
-    <p class="hint">Drag the joystick to move (or use arrow keys / WASD). Get close to a human to infect them &mdash; they'll join your horde and help hunt the rest. Tap the bolt to sprint once it's charged.</p>
+    <p class="hint">Drag the joystick to move (or use arrow keys / WASD). Get close to a human to infect them &mdash; they'll join your horde. Once you have a pal, a second joystick points your horde in a direction; let go and they hunt on their own again. Tap the bolt to sprint once it's charged.</p>
   </div>
   <script src="game.js"></script>
 </body>

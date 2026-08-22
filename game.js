@@ -21,15 +21,21 @@
   const SPRINT_MULT = 2;
 
   // Difficulty ramps across 3 levels: more people, a bigger/more alert
-  // detection radius, a tighter catch radius, and a denser city each time.
-  // fleeRadius is kept small on purpose: since a fleeing human is slightly
-  // faster than a zombie, the real skill is closing in *before* they notice
-  // you (while they're still wandering, which is much slower) rather than
-  // out-running them once alerted -- that only works via cornering.
+  // detection radius, a tighter catch radius, and a denser street grid
+  // each time. fleeRadius is kept small on purpose: since a fleeing human
+  // is slightly faster than a zombie, the real skill is closing in
+  // *before* they notice you (while they're still wandering, which is
+  // much slower) rather than out-running them once alerted -- that only
+  // works via cornering.
+  //
+  // Each level has a fixed seed, so the city layout, its decor, and every
+  // spawn point are identical on every playthrough -- best times are
+  // actually comparable, and there's no chance of a random layout being
+  // unfair.
   const LEVELS = [
-    { humanCount: 30, fleeSpeed: 1.15, fleeRadius: 38, catchRadius: 12, blockCount: 12 },
-    { humanCount: 45, fleeSpeed: 1.30, fleeRadius: 41, catchRadius: 11, blockCount: 17 },
-    { humanCount: 65, fleeSpeed: 1.45, fleeRadius: 44, catchRadius: 10, blockCount: 22 },
+    { humanCount: 30, fleeSpeed: 1.15, fleeRadius: 38, catchRadius: 12, minBlock: 3, maxBlock: 4, seed: 1001 },
+    { humanCount: 45, fleeSpeed: 1.30, fleeRadius: 41, catchRadius: 11, minBlock: 3, maxBlock: 5, seed: 2002 },
+    { humanCount: 65, fleeSpeed: 1.45, fleeRadius: 44, catchRadius: 10, minBlock: 4, maxBlock: 6, seed: 3003 },
   ];
 
   // Zombies are deliberately a bit slower than a fleeing human -- catching
@@ -71,36 +77,154 @@
   bctx.scale(RENDER_SCALE, RENDER_SCALE);
   bctx.imageSmoothingEnabled = true;
 
-  // ---------- Map: 0 = walkable, 1 = building. Regenerated every level. ----------
+  // ---------- Deterministic per-level randomness ----------
+  // A tiny seedable PRNG (mulberry32) so each level's city, decor, and
+  // spawn points are pixel-identical every time it's played. Reseeded at
+  // the top of setupLevel(); everything generated during level setup pulls
+  // from this instead of Math.random(). Live gameplay AI (wander timing,
+  // flee wobble, panic, particles) keeps using plain Math.random() -- only
+  // the initial layout needs to be reproducible.
+  function mulberry32(seed) {
+    let s = seed >>> 0;
+    return function () {
+      s |= 0; s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  let levelRand = Math.random;
+
+  // ---------- Map: 0 = walkable, 1 = building. Built once per level from its seed. ----------
   let map = [];
-  let buildingRects = [];
   let walkableTiles = [];
 
-  function generateMap(blockCount) {
+  // Splits a length into alternating street/block segments (street, block,
+  // street, block, ..., street), with block sizes randomized per level
+  // difficulty. This is what turns the city into a real street grid instead
+  // of scattered obstacles.
+  function subdivide(total, minBlock, maxBlock, streetWidth) {
+    const segs = [{ type: 'street', start: 0, size: streetWidth }];
+    let pos = streetWidth;
+    while (pos < total - streetWidth) {
+      const size = Math.min(
+        minBlock + Math.floor(levelRand() * (maxBlock - minBlock + 1)),
+        total - streetWidth - pos
+      );
+      if (size < 2) break;
+      segs.push({ type: 'block', start: pos, size });
+      pos += size;
+      if (pos >= total - streetWidth) break;
+      const sSize = Math.min(streetWidth, total - streetWidth - pos);
+      if (sSize <= 0) break;
+      segs.push({ type: 'street', start: pos, size: sSize });
+      pos += sSize;
+    }
+    if (pos < total) segs.push({ type: 'street', start: pos, size: total - pos });
+    return segs;
+  }
+
+  const CAR_COLORS = ['#7a3f3f', '#3f5a7a', '#5a5a5a', '#6b5a3f', '#3f5a4f'];
+  const PROP_TYPES = ['trashcan', 'suitcase', 'skidmarks'];
+
+  function generateCity(cfg) {
+    const STREET_W = 2;
+    const colSegs = subdivide(COLS, cfg.minBlock, cfg.maxBlock, STREET_W);
+    const rowSegs = subdivide(ROWS, cfg.minBlock, cfg.maxBlock, STREET_W);
+
     const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
-    const rects = [];
-    let placed = 0, attempts = 0;
-    while (placed < blockCount && attempts < 400) {
-      attempts++;
-      const bw = 2 + ((Math.random() * 3) | 0);
-      const bh = 2 + ((Math.random() * 3) | 0);
-      const bx = 1 + ((Math.random() * (COLS - bw - 2)) | 0);
-      const by = 1 + ((Math.random() * (ROWS - bh - 2)) | 0);
-      let clear = true;
-      for (let y = by - 1; y <= by + bh && clear; y++) {
-        for (let x = bx - 1; x <= bx + bw && clear; x++) {
-          if (y < 0 || x < 0 || y >= ROWS || x >= COLS) continue;
-          if (grid[y][x] === 1) clear = false;
+    const buildingRects = [];
+    function addBuilding(x, y, w, h) {
+      if (w < 1 || h < 1) return;
+      for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) grid[yy][xx] = 1;
+      buildingRects.push({ x, y, w, h });
+    }
+
+    for (const rowSeg of rowSegs) {
+      if (rowSeg.type !== 'block') continue;
+      for (const colSeg of colSegs) {
+        if (colSeg.type !== 'block') continue;
+        const cx = colSeg.start, cy = rowSeg.start, cw = colSeg.size, ch = rowSeg.size;
+        // Streets already separate every block from its neighbors, so a
+        // building can fill essentially the whole cell -- no interior tile
+        // margin needed (the sidewalk is drawn as a few-pixel visual pad in
+        // renderMap, not carved out of the collision grid).
+        const roll = levelRand();
+        if (roll < 0.12) {
+          continue; // open plaza -- no building this block
+        } else if (roll < 0.32 && cw >= 4 && ch >= 3) {
+          // Split into two side-by-side buildings, 1 tile apart, for skyline variety.
+          const w1 = Math.max(1, Math.floor((cw - 1) / 2));
+          const w2 = Math.max(1, cw - 1 - w1);
+          addBuilding(cx, cy, w1, ch);
+          addBuilding(cx + w1 + 1, cy, w2, ch);
+        } else {
+          addBuilding(cx, cy, cw, ch);
         }
       }
-      if (!clear) continue;
-      for (let y = by; y < by + bh; y++) {
-        for (let x = bx; x < bx + bw; x++) grid[y][x] = 1;
-      }
-      rects.push({ x: bx, y: by, w: bw, h: bh });
-      placed++;
     }
-    return { grid, rects };
+
+    // Streetlights and parked cars line every street corridor.
+    const streetlights = [];
+    const parkedCars = [];
+    for (const seg of colSegs) {
+      if (seg.type !== 'street') continue;
+      const lightX = seg.start * TILE + TILE * 0.25;
+      for (let y = 3; y < ROWS - 2; y += 6) {
+        streetlights.push({ x: lightX, y: y * TILE + (levelRand() * 6 - 3) });
+      }
+      const carX = seg.start * TILE + TILE * 0.75;
+      for (let y = 5; y < ROWS - 3; y += 5) {
+        if (levelRand() < 0.55) {
+          parkedCars.push({ x: carX, y: y * TILE + (levelRand() * 4 - 2), vertical: true, color: CAR_COLORS[(levelRand() * CAR_COLORS.length) | 0] });
+        }
+      }
+    }
+    for (const seg of rowSegs) {
+      if (seg.type !== 'street') continue;
+      const lightY = seg.start * TILE + TILE * 0.25;
+      for (let x = 3; x < COLS - 2; x += 6) {
+        streetlights.push({ x: x * TILE + (levelRand() * 6 - 3), y: lightY });
+      }
+      const carY = seg.start * TILE + TILE * 0.75;
+      for (let x = 5; x < COLS - 3; x += 5) {
+        if (levelRand() < 0.55) {
+          parkedCars.push({ x: x * TILE + (levelRand() * 4 - 2), y: carY, vertical: false, color: CAR_COLORS[(levelRand() * CAR_COLORS.length) | 0] });
+        }
+      }
+    }
+
+    // Crosswalks at most (not all) street/street intersections, for variety.
+    const crosswalks = [];
+    for (const colSeg of colSegs) {
+      if (colSeg.type !== 'street') continue;
+      for (const rowSeg of rowSegs) {
+        if (rowSeg.type !== 'street') continue;
+        if (levelRand() < 0.6) {
+          crosswalks.push({ x: colSeg.start * TILE, y: rowSeg.start * TILE, w: colSeg.size * TILE, h: rowSeg.size * TILE });
+        }
+      }
+    }
+
+    // A handful of fixed "outbreak in progress" set pieces on open streets.
+    const streetTiles = [];
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (grid[y][x] === 0) streetTiles.push({ x, y });
+      }
+    }
+    const props = [];
+    for (let i = 0; i < 4; i++) {
+      const t = streetTiles[(levelRand() * streetTiles.length) | 0];
+      props.push({
+        type: PROP_TYPES[(levelRand() * PROP_TYPES.length) | 0],
+        x: t.x * TILE + TILE / 2,
+        y: t.y * TILE + TILE / 2,
+        rot: levelRand() * Math.PI * 2,
+      });
+    }
+
+    return { grid, buildingRects, colSegs, rowSegs, streetlights, parkedCars, crosswalks, props };
   }
 
   function tileAt(px, py) {
@@ -143,8 +267,72 @@
     return desiredAngle;
   }
 
-  // ---------- City rendering: facades with lit/broken windows, sidewalks, grime ----------
-  function renderMap() {
+  // ---------- City rendering: streets, lights, cars, facades, decor ----------
+  function drawParkedCar(car) {
+    bctx.save();
+    bctx.translate(car.x, car.y);
+    if (!car.vertical) bctx.rotate(Math.PI / 2);
+    bctx.fillStyle = 'rgba(0,0,0,0.3)';
+    bctx.fillRect(-3.5, -6, 7, 13);
+    bctx.fillStyle = car.color;
+    bctx.fillRect(-3, -6.5, 6, 12);
+    bctx.fillStyle = 'rgba(180, 210, 220, 0.55)';
+    bctx.fillRect(-2.3, -4.5, 4.6, 3);
+    bctx.fillStyle = 'rgba(0,0,0,0.4)';
+    bctx.fillRect(-3, -6.5, 6, 1.2);
+    bctx.fillRect(-3, 4.3, 6, 1.2);
+    bctx.restore();
+  }
+
+  function drawStreetlight(light) {
+    bctx.fillStyle = 'rgba(255, 220, 150, 0.12)';
+    bctx.beginPath();
+    bctx.arc(light.x, light.y, 11, 0, Math.PI * 2);
+    bctx.fill();
+
+    bctx.fillStyle = '#2a2f2c';
+    bctx.fillRect(light.x - 0.8, light.y - 9, 1.6, 10);
+    bctx.beginPath();
+    bctx.arc(light.x, light.y - 10, 2.2, 0, Math.PI * 2);
+    bctx.fillStyle = '#ffe6a3';
+    bctx.fill();
+  }
+
+  function drawProp(prop) {
+    bctx.save();
+    bctx.translate(prop.x, prop.y);
+    bctx.rotate(prop.rot);
+    if (prop.type === 'trashcan') {
+      bctx.fillStyle = 'rgba(0,0,0,0.3)';
+      bctx.fillRect(-5, 1, 10, 2);
+      bctx.fillStyle = '#4a4f45';
+      bctx.fillRect(-4, -2, 8, 4);
+      bctx.fillStyle = '#63685c';
+      for (let i = -3; i <= 3; i += 2) bctx.fillRect(i, -2, 0.6, 4);
+    } else if (prop.type === 'suitcase') {
+      bctx.fillStyle = 'rgba(0,0,0,0.3)';
+      bctx.fillRect(-4, 1.5, 8, 2);
+      bctx.fillStyle = '#5a4030';
+      bctx.fillRect(-4, -2.5, 8, 5);
+      bctx.strokeStyle = '#3a281c';
+      bctx.lineWidth = 0.6;
+      bctx.strokeRect(-4, -2.5, 8, 5);
+    } else {
+      bctx.strokeStyle = 'rgba(15, 15, 15, 0.45)';
+      bctx.lineWidth = 1.4;
+      bctx.beginPath();
+      bctx.moveTo(-9, 0);
+      bctx.quadraticCurveTo(0, 4, 9, -1);
+      bctx.stroke();
+      bctx.beginPath();
+      bctx.moveTo(-9, 3);
+      bctx.quadraticCurveTo(0, 7, 9, 2);
+      bctx.stroke();
+    }
+    bctx.restore();
+  }
+
+  function renderMap(city) {
     bctx.clearRect(0, 0, W, H);
 
     const roadGrad = bctx.createLinearGradient(0, 0, 0, H);
@@ -155,45 +343,64 @@
 
     // Subtle asphalt grime so the road isn't a flat fill.
     for (let i = 0; i < 260; i++) {
-      const gx = Math.random() * W, gy = Math.random() * H;
-      bctx.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.03)';
+      const gx = levelRand() * W, gy = levelRand() * H;
+      bctx.fillStyle = levelRand() < 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.03)';
       bctx.beginPath();
-      bctx.arc(gx, gy, 1 + Math.random() * 2, 0, Math.PI * 2);
+      bctx.arc(gx, gy, 1 + levelRand() * 2, 0, Math.PI * 2);
       bctx.fill();
     }
 
-    for (const rect of buildingRects) {
+    // Dashed lane lines down every street's centerline.
+    bctx.fillStyle = 'rgba(210, 200, 160, 0.35)';
+    for (const seg of city.colSegs) {
+      if (seg.type !== 'street') continue;
+      const cx = seg.start * TILE + (seg.size * TILE) / 2 - 1;
+      for (let y = 4; y < H - 4; y += 14) bctx.fillRect(cx, y, 2, 8);
+    }
+    for (const seg of city.rowSegs) {
+      if (seg.type !== 'street') continue;
+      const cy = seg.start * TILE + (seg.size * TILE) / 2 - 1;
+      for (let x = 4; x < W - 4; x += 14) bctx.fillRect(x, cy, 8, 2);
+    }
+
+    // Crosswalks at intersections (drawn over the lane lines).
+    for (const cw of city.crosswalks) {
+      bctx.fillStyle = 'rgba(230, 225, 210, 0.55)';
+      const stripeCount = Math.max(2, Math.floor(cw.w / 6));
+      for (let i = 0; i < stripeCount; i++) {
+        const sx = cw.x + (i + 0.5) * (cw.w / stripeCount) - 2;
+        bctx.fillRect(sx, cw.y + 2, 4, cw.h - 4);
+      }
+    }
+
+    // Building facades with lit / dark / broken windows.
+    for (const rect of city.buildingRects) {
       const px = rect.x * TILE, py = rect.y * TILE;
       const pw = rect.w * TILE, ph = rect.h * TILE;
 
-      // Sidewalk pad
       bctx.fillStyle = '#3a463f';
       bctx.fillRect(px - 3, py - 3, pw + 6, ph + 6);
 
-      // Drop shadow
       bctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
       bctx.fillRect(px + 3, py + 4, pw, ph);
 
-      // Facade (lit from above)
       const facadeGrad = bctx.createLinearGradient(px, py, px, py + ph);
       facadeGrad.addColorStop(0, '#48565e');
       facadeGrad.addColorStop(1, '#252f34');
       bctx.fillStyle = facadeGrad;
       bctx.fillRect(px, py, pw, ph);
 
-      // Roof highlight + side shading for a hint of depth
       bctx.fillStyle = 'rgba(255, 255, 255, 0.10)';
       bctx.fillRect(px, py, pw, 2);
       bctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
       bctx.fillRect(px + pw - 3, py, 3, ph);
       bctx.fillRect(px, py + ph - 3, pw, 3);
 
-      // Windows: one per tile cell, a mix of lit / dark / broken.
       for (let ty = rect.y; ty < rect.y + rect.h; ty++) {
         for (let tx = rect.x; tx < rect.x + rect.w; tx++) {
           const wx = tx * TILE + TILE / 2 - 3;
           const wy = ty * TILE + TILE / 2 - 3;
-          const roll = Math.random();
+          const roll = levelRand();
           if (roll < 0.13) {
             bctx.fillStyle = '#10151a';
             bctx.fillRect(wx, wy, 6, 6);
@@ -220,6 +427,10 @@
         }
       }
     }
+
+    for (const car of city.parkedCars) drawParkedCar(car);
+    for (const light of city.streetlights) drawStreetlight(light);
+    for (const prop of city.props) drawProp(prop);
   }
 
   function rebuildWalkableTiles() {
@@ -232,7 +443,7 @@
   }
 
   function randomWalkablePoint() {
-    const t = walkableTiles[(Math.random() * walkableTiles.length) | 0];
+    const t = walkableTiles[(levelRand() * walkableTiles.length) | 0];
     return {
       x: t.x * TILE + TILE / 2,
       y: t.y * TILE + TILE / 2,
@@ -331,21 +542,23 @@
   let totalElapsed = 0;
   let sprintCooldownUntil = 0;
   let sprintActiveUntil = 0;
+  let hordeUnlocked = false;
 
   function setupLevel(n) {
     const cfg = LEVELS[n - 1];
     level = n;
+    levelRand = mulberry32(cfg.seed);
+
     SPEED_HUMAN_FLEE = cfg.fleeSpeed;
     SPEED_PLAYER = cfg.fleeSpeed * 0.94;
     SPEED_PAL_CHASE = cfg.fleeSpeed * 0.97;
     HUMAN_FLEE_R = cfg.fleeRadius;
     CATCH_R = cfg.catchRadius;
 
-    const generated = generateMap(cfg.blockCount);
-    map = generated.grid;
-    buildingRects = generated.rects;
+    const city = generateCity(cfg);
+    map = city.grid;
     rebuildWalkableTiles();
-    renderMap();
+    renderMap(city);
 
     const p0 = randomWalkablePoint();
     player = { x: p0.x, y: p0.y, r: ENTITY_R, dir: 'down' };
@@ -354,6 +567,10 @@
     trail = [];
     sprintCooldownUntil = 0;
     sprintActiveUntil = 0;
+    hordeUnlocked = false;
+    hordeJoystickEl.classList.add('hidden');
+    hordeJoystickEl.classList.remove('revealed');
+    resetHordeJoystick();
 
     humans = [];
     for (let i = 0; i < cfg.humanCount; i++) {
@@ -412,8 +629,8 @@
   let joystickActive = false;
   let joystickVec = { x: 0, y: 0 };
 
-  function updateJoystick(clientX, clientY) {
-    const rect = joystickBase.getBoundingClientRect();
+  function updateJoystickVec(baseEl, knobEl, clientX, clientY) {
+    const rect = baseEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     let dx = clientX - cx;
@@ -424,8 +641,8 @@
       dx = (dx / d) * maxR;
       dy = (dy / d) * maxR;
     }
-    joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
-    joystickVec = { x: dx / maxR, y: dy / maxR };
+    knobEl.style.transform = `translate(${dx}px, ${dy}px)`;
+    return { x: dx / maxR, y: dy / maxR };
   }
 
   function resetJoystick() {
@@ -437,17 +654,55 @@
   joystickBase.addEventListener('pointerdown', (e) => {
     joystickActive = true;
     joystickBase.setPointerCapture(e.pointerId);
-    updateJoystick(e.clientX, e.clientY);
+    joystickVec = updateJoystickVec(joystickBase, joystickKnob, e.clientX, e.clientY);
     startIfNeeded();
     e.preventDefault();
   });
   joystickBase.addEventListener('pointermove', (e) => {
     if (!joystickActive) return;
-    updateJoystick(e.clientX, e.clientY);
+    joystickVec = updateJoystickVec(joystickBase, joystickKnob, e.clientX, e.clientY);
     e.preventDefault();
   });
   joystickBase.addEventListener('pointerup', resetJoystick);
   joystickBase.addEventListener('pointercancel', resetJoystick);
+
+  // Horde-direction joystick: appears once you have your first pal. While
+  // held, the whole horde generally heads that way instead of running its
+  // usual chase-nearest/orbit-you logic; release it and they go right back
+  // to hunting on their own.
+  const hordeJoystickEl = document.getElementById('horde-joystick');
+  const hordeJoystickBase = document.getElementById('horde-joystick-base');
+  const hordeJoystickKnob = document.getElementById('horde-joystick-knob');
+  let hordeJoystickActive = false;
+  let hordeJoystickVec = { x: 0, y: 0 };
+
+  function resetHordeJoystick() {
+    hordeJoystickActive = false;
+    hordeJoystickVec = { x: 0, y: 0 };
+    hordeJoystickKnob.style.transform = 'translate(0px, 0px)';
+  }
+
+  hordeJoystickBase.addEventListener('pointerdown', (e) => {
+    if (!hordeUnlocked) return;
+    hordeJoystickActive = true;
+    hordeJoystickBase.setPointerCapture(e.pointerId);
+    hordeJoystickVec = updateJoystickVec(hordeJoystickBase, hordeJoystickKnob, e.clientX, e.clientY);
+    e.preventDefault();
+  });
+  hordeJoystickBase.addEventListener('pointermove', (e) => {
+    if (!hordeJoystickActive) return;
+    hordeJoystickVec = updateJoystickVec(hordeJoystickBase, hordeJoystickKnob, e.clientX, e.clientY);
+    e.preventDefault();
+  });
+  hordeJoystickBase.addEventListener('pointerup', resetHordeJoystick);
+  hordeJoystickBase.addEventListener('pointercancel', resetHordeJoystick);
+
+  function unlockHordeJoystick() {
+    if (hordeUnlocked) return;
+    hordeUnlocked = true;
+    hordeJoystickEl.classList.remove('hidden');
+    hordeJoystickEl.classList.add('revealed');
+  }
 
   // Safari ignores preventDefault() on pointer events for suppressing native
   // scroll/bounce; it only respects preventDefault() on the touch event itself.
@@ -647,8 +902,18 @@
   }
 
   function updatePals() {
+    const hordeCommand = hordeJoystickActive && (hordeJoystickVec.x !== 0 || hordeJoystickVec.y !== 0);
     const count = pals.length;
+
     pals.forEach((pal, i) => {
+      if (hordeCommand) {
+        const mag = Math.min(1, Math.hypot(hordeJoystickVec.x, hordeJoystickVec.y));
+        const desired = Math.atan2(hordeJoystickVec.y, hordeJoystickVec.x);
+        const angle = steerOpen(pal.x, pal.y, pal.r, desired, pal.r + 8);
+        moveEntity(pal, Math.cos(angle) * SPEED_PAL_CHASE * mag, Math.sin(angle) * SPEED_PAL_CHASE * mag);
+        return;
+      }
+
       let target = null, td = Infinity;
       for (const h of humans) {
         const d = dist(pal, h);
@@ -812,6 +1077,7 @@
           caught += 1;
           spawnCatchBurst(h.x, h.y);
           playInfectSound(h.x);
+          if (pals.length === 1) unlockHordeJoystick();
           break;
         }
       }

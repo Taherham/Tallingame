@@ -177,14 +177,14 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 22px;
+  gap: 16px;
   padding: 4px 0 6px;
 }
 
 .joystick-base {
   position: relative;
-  width: 108px;
-  height: 108px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   background: radial-gradient(circle at 38% 32%, #1b3327, #0b1712 72%);
   border: 1px solid var(--panel-border);
@@ -197,13 +197,38 @@ button {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 48px;
-  height: 48px;
-  margin: -24px;
+  width: 44px;
+  height: 44px;
+  margin: -22px;
   border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, var(--accent-bright), var(--accent) 70%);
   box-shadow: 0 0 16px rgba(125, 255, 176, 0.6), 0 4px 8px rgba(0, 0, 0, 0.3);
   will-change: transform;
+}
+
+.horde-joystick.hidden {
+  display: none;
+}
+
+.horde-joystick.revealed {
+  animation: joystick-pop 0.4s ease-out;
+}
+
+@keyframes joystick-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  70% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .horde-joystick.revealed {
+    animation: none;
+  }
+}
+
+.joystick-knob.horde-knob {
+  background: radial-gradient(circle at 32% 28%, #c8ffdc, #5be08c 70%);
+  box-shadow: 0 0 16px rgba(91, 224, 140, 0.6), 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .sprint-btn {
