@@ -33,9 +33,12 @@
   // actually comparable, and there's no chance of a random layout being
   // unfair.
   const LEVELS = [
-    { humanCount: 30, fleeSpeed: 1.15, fleeRadius: 38, catchRadius: 12, minBlock: 3, maxBlock: 4, seed: 1001 },
-    { humanCount: 45, fleeSpeed: 1.30, fleeRadius: 41, catchRadius: 11, minBlock: 3, maxBlock: 5, seed: 2002 },
-    { humanCount: 65, fleeSpeed: 1.45, fleeRadius: 44, catchRadius: 10, minBlock: 4, maxBlock: 6, seed: 3003 },
+    { humanCount: 30, fleeSpeed: 1.15, fleeRadius: 38, catchRadius: 12, minBlock: 3, maxBlock: 4, seed: 1001,
+      purpleShirtRatio: 0.12, gunSpawnMs: 10000, maxGuns: 1, aimDurationMs: 1000 },
+    { humanCount: 45, fleeSpeed: 1.30, fleeRadius: 41, catchRadius: 11, minBlock: 3, maxBlock: 5, seed: 2002,
+      purpleShirtRatio: 0.16, gunSpawnMs: 8000, maxGuns: 2, aimDurationMs: 850 },
+    { humanCount: 65, fleeSpeed: 1.45, fleeRadius: 44, catchRadius: 10, minBlock: 4, maxBlock: 6, seed: 3003,
+      purpleShirtRatio: 0.20, gunSpawnMs: 6500, maxGuns: 3, aimDurationMs: 700 },
   ];
 
   // Zombies are deliberately a bit slower than a fleeing human -- catching
@@ -48,10 +51,28 @@
   let SPEED_PAL_CHASE = LEVELS[0].fleeSpeed * 0.97;
   let HUMAN_FLEE_R = LEVELS[0].fleeRadius;
   let CATCH_R = LEVELS[0].catchRadius;
+  let PURPLE_SHIRT_RATIO = LEVELS[0].purpleShirtRatio;
+  let GUN_SPAWN_MS = LEVELS[0].gunSpawnMs;
+  let MAX_GUNS = LEVELS[0].maxGuns;
+  let AIM_DURATION_MS = LEVELS[0].aimDurationMs;
+
+  // Gun/door mechanics: tuned by level above via the fields on LEVELS;
+  // everything else about them is constant difficulty-independent feel.
+  const AMMO_PER_GUN = 3;
+  const SHOOT_RANGE = 130;
+  const HIT_RADIUS = 14;
+  const FIRE_COOLDOWN_MS = 2200;
+  const GUN_PICKUP_R = 9;
+  const DOOR_SEEK_R = 70;
+  const HIDE_DURATION_MS = 5000;
+  const HIDE_COOLDOWN_MS = 8000;
+  const PLAYER_MAX_HP = 5;
+  const PLAYER_INVULN_MS = 1200;
 
   // Humans stay dark/muted so they read clearly as "not yours"; horde pals
   // are bright green, and the player is a distinct bright blue so you can
-  // always pick yourself out from your own horde at a glance.
+  // always pick yourself out from your own horde at a glance. Purple-shirt
+  // humans are the ones who'll duck into a doorway to hide when threatened.
   const HUMAN_PALETTES = [
     { bodyLight: '#5a4a42', bodyDark: '#241c18', headLight: '#7a675a', headDark: '#4a3d34' },
     { bodyLight: '#3f4a58', bodyDark: '#181d24', headLight: '#5c6b7a', headDark: '#33404c' },
@@ -59,6 +80,7 @@
     { bodyLight: '#5c5449', bodyDark: '#26221c', headLight: '#7d7367', headDark: '#4c453a' },
     { bodyLight: '#523f3f', bodyDark: '#1f1818', headLight: '#735c5c', headDark: '#4a3333' },
   ];
+  const PURPLE_COLORS = { bodyLight: '#9a6fd1', bodyDark: '#3d2463', headLight: '#8a7a92', headDark: '#453a4c' };
   const PAL_COLORS = { bodyLight: '#5be08c', bodyDark: '#175c34', headLight: '#8dffb8', headDark: '#2f8a55', glow: '#4be08c' };
   const PLAYER_COLORS = { bodyLight: '#bdeeff', bodyDark: '#1f7aa8', headLight: '#eafcff', headDark: '#3fa9d6', glow: '#5cc8ff' };
 
@@ -224,7 +246,20 @@
       });
     }
 
-    return { grid, buildingRects, colSegs, rowSegs, streetlights, parkedCars, crosswalks, props };
+    // Doors on some buildings -- always on the bottom edge, which every
+    // block segment guarantees is adjacent to a street (subdivide() always
+    // sandwiches a block between two street segments). Purple-shirt humans
+    // duck through the nearest one to hide.
+    const doors = [];
+    for (const rect of buildingRects) {
+      if (levelRand() < 0.45) {
+        const doorX = rect.x * TILE + (rect.w * TILE) / 2;
+        const wallY = (rect.y + rect.h) * TILE;
+        doors.push({ x: doorX, y: wallY + TILE * 0.5, wallY });
+      }
+    }
+
+    return { grid, buildingRects, colSegs, rowSegs, streetlights, parkedCars, crosswalks, props, doors };
   }
 
   function tileAt(px, py) {
@@ -290,6 +325,21 @@
     bctx.beginPath();
     bctx.arc(light.x, light.y - 10, 2.2, 0, Math.PI * 2);
     bctx.fillStyle = '#ffe6a3';
+    bctx.fill();
+  }
+
+  function drawDoor(door) {
+    const w = 8, h = 10;
+    bctx.fillStyle = '#1c1410';
+    bctx.fillRect(door.x - w / 2, door.wallY - h + 3, w, h);
+    bctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    bctx.fillRect(door.x - w / 2, door.wallY - 3, w, 3);
+    bctx.strokeStyle = 'rgba(200, 190, 170, 0.4)';
+    bctx.lineWidth = 0.6;
+    bctx.strokeRect(door.x - w / 2, door.wallY - h + 3, w, h);
+    bctx.fillStyle = 'rgba(230, 200, 120, 0.55)';
+    bctx.beginPath();
+    bctx.arc(door.x + w / 2 - 2, door.wallY - h / 2 + 3, 0.8, 0, Math.PI * 2);
     bctx.fill();
   }
 
@@ -426,6 +476,7 @@
     for (const car of city.parkedCars) drawParkedCar(car);
     for (const light of city.streetlights) drawStreetlight(light);
     for (const prop of city.props) drawProp(prop);
+    for (const door of city.doors) drawDoor(door);
   }
 
   function rebuildWalkableTiles() {
@@ -491,6 +542,7 @@
   }
 
   const humanSprites = HUMAN_PALETTES.map((p) => makeCharacterSprite(p));
+  const purpleSprite = makeCharacterSprite(PURPLE_COLORS);
   const palSprite = makeCharacterSprite(PAL_COLORS);
   const playerSprite = makeCharacterSprite(PLAYER_COLORS);
 
@@ -532,12 +584,17 @@
   let player, pals, humans, particles, trail;
   let caught, running;
   let level = 1;
-  let stage = 'intro'; // 'intro' | 'playing' | 'levelComplete' | 'gameComplete'
+  let stage = 'intro'; // 'intro' | 'playing' | 'levelComplete' | 'gameComplete' | 'gameOver'
   let levelStartTime = 0;
   let totalElapsed = 0;
   let sprintCooldownUntil = 0;
   let sprintActiveUntil = 0;
   let hordeUnlocked = false;
+  let currentCity = null;
+  let guns = [];
+  let nextGunSpawnAt = 0;
+  let playerHP = PLAYER_MAX_HP;
+  let playerInvulnUntil = 0;
 
   function setupLevel(n) {
     const cfg = LEVELS[n - 1];
@@ -549,8 +606,13 @@
     SPEED_PAL_CHASE = cfg.fleeSpeed * 0.97;
     HUMAN_FLEE_R = cfg.fleeRadius;
     CATCH_R = cfg.catchRadius;
+    PURPLE_SHIRT_RATIO = cfg.purpleShirtRatio;
+    GUN_SPAWN_MS = cfg.gunSpawnMs;
+    MAX_GUNS = cfg.maxGuns;
+    AIM_DURATION_MS = cfg.aimDurationMs;
 
     const city = generateCity(cfg);
+    currentCity = city;
     map = city.grid;
     rebuildWalkableTiles();
     renderMap(city);
@@ -560,6 +622,10 @@
     pals = [];
     particles = [];
     trail = [];
+    guns = [];
+    nextGunSpawnAt = performance_time() + GUN_SPAWN_MS * 0.6;
+    playerHP = PLAYER_MAX_HP;
+    playerInvulnUntil = 0;
     sprintCooldownUntil = 0;
     sprintActiveUntil = 0;
     hordeUnlocked = false;
@@ -570,6 +636,7 @@
     humans = [];
     for (let i = 0; i < cfg.humanCount; i++) {
       const pt = randomWalkablePoint();
+      const canHide = levelRand() < PURPLE_SHIRT_RATIO;
       humans.push({
         id: i,
         x: pt.x,
@@ -581,7 +648,18 @@
         fleeing: false,
         fleeJitter: 0,
         fleeJitterT: 0,
-        sprite: humanSprites[i % humanSprites.length],
+        sprite: canHide ? purpleSprite : humanSprites[i % humanSprites.length],
+        canHide,
+        hiding: false,
+        hideUntil: 0,
+        hideCooldownUntil: 0,
+        armed: false,
+        ammo: 0,
+        aiming: false,
+        aimStartAt: 0,
+        aimEndsAt: 0,
+        aimTarget: null,
+        fireCooldownUntil: 0,
       });
     }
 
@@ -590,6 +668,7 @@
     document.getElementById('caught').textContent = '0';
     document.getElementById('total').textContent = String(cfg.humanCount);
     document.getElementById('horde').textContent = String(pals.length + 1);
+    document.getElementById('hp').textContent = String(playerHP);
     document.getElementById('time').textContent = formatTime(0);
   }
 
@@ -876,6 +955,90 @@
     osc.onended = () => { activeGroans--; };
   }
 
+  function playGunshot(px) {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = getNoiseBuffer();
+    const bp = audioCtx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1800;
+    bp.Q.value = 0.6;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.4, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+
+    const thump = audioCtx.createOscillator();
+    thump.type = 'sine';
+    thump.frequency.setValueAtTime(140, now);
+    thump.frequency.exponentialRampToValueAtTime(50, now + 0.08);
+    const thumpGain = audioCtx.createGain();
+    thumpGain.gain.setValueAtTime(0.5, now);
+    thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+
+    const pan = pannerFor(px);
+    const bus = audioCtx.createGain();
+    if (pan) { bus.connect(pan); pan.connect(masterGain); } else { bus.connect(masterGain); }
+
+    noise.connect(bp).connect(noiseGain).connect(bus);
+    thump.connect(thumpGain).connect(bus);
+    noise.start(now);
+    noise.stop(now + 0.15);
+    thump.start(now);
+    thump.stop(now + 0.12);
+  }
+
+  function playPlayerHitSound() {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const dur = 0.3;
+
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(60, now + dur);
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.32, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    osc.connect(gain).connect(masterGain);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = getNoiseBuffer();
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 900;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.25, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    noise.connect(lp).connect(noiseGain).connect(masterGain);
+    noise.start(now);
+    noise.stop(now + 0.2);
+  }
+
+  function playPalDownSound(px) {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const dur = 0.3;
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(260, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + dur);
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.28, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    const pan = pannerFor(px);
+    let node = gain;
+    osc.connect(gain);
+    if (pan) { gain.connect(pan); node = pan; }
+    node.connect(masterGain);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+  }
+
   function playSprintSound() {
     if (!audioCtx) return;
     const now = audioCtx.currentTime;
@@ -1032,6 +1195,8 @@
     } else if (stage === 'gameComplete') {
       totalElapsed = 0;
       beginLevel(1);
+    } else if (stage === 'gameOver') {
+      beginLevel(level);
     }
     running = true;
     document.getElementById('overlay').classList.add('hidden');
@@ -1084,6 +1249,7 @@
 
       let target = null, td = Infinity;
       for (const h of humans) {
+        if (h.hiding) continue;
         const d = dist(pal, h);
         if (d < PAL_CHASE_R && d < td) { td = d; target = h; }
       }
@@ -1106,8 +1272,172 @@
     });
   }
 
+  function findNearestDoor(x, y, maxR) {
+    if (!currentCity) return null;
+    let best = null, bd = maxR;
+    for (const door of currentCity.doors) {
+      const d = Math.hypot(door.x - x, door.y - y);
+      if (d < bd) { bd = d; best = door; }
+    }
+    return best;
+  }
+
+  function hasLineOfSight(x0, y0, x1, y1) {
+    const d = Math.hypot(x1 - x0, y1 - y0);
+    const steps = Math.max(1, Math.ceil(d / (TILE / 2)));
+    for (let i = 1; i < steps; i++) {
+      const t = i / steps;
+      if (tileAt(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t) === 1) return false;
+    }
+    return true;
+  }
+
+  function findShootableZombie(h) {
+    const zombies = [player, ...pals];
+    let best = null, bestD = SHOOT_RANGE;
+    for (const z of zombies) {
+      const d = dist(h, z);
+      if (d < bestD && hasLineOfSight(h.x, h.y, z.x, z.y)) {
+        bestD = d;
+        best = z;
+      }
+    }
+    return best;
+  }
+
+  function resolveShot(h) {
+    playGunshot(h.x);
+    const target = h.aimTarget;
+    const zombies = [player, ...pals];
+    let hit = null, hitD = HIT_RADIUS;
+    for (const z of zombies) {
+      const d = dist(z, target);
+      if (d < hitD) { hitD = d; hit = z; }
+    }
+
+    if (hit === player) {
+      onPlayerHit();
+    } else if (hit) {
+      const idx = pals.indexOf(hit);
+      if (idx !== -1) {
+        spawnEliminationBurst(hit.x, hit.y);
+        playPalDownSound(hit.x);
+        pals.splice(idx, 1);
+        document.getElementById('horde').textContent = String(pals.length + 1);
+      }
+    } else {
+      for (let i = 0; i < 5; i++) {
+        particles.push({
+          x: target.x, y: target.y,
+          vx: (Math.random() - 0.5) * 1.2, vy: (Math.random() - 0.5) * 1.2,
+          life: 1, decay: 0.06, color: '#c9a26a',
+        });
+      }
+    }
+
+    h.aiming = false;
+    h.ammo -= 1;
+    if (h.ammo <= 0) h.armed = false;
+    h.fireCooldownUntil = performance_time() + FIRE_COOLDOWN_MS;
+  }
+
+  function onPlayerHit() {
+    const now = performance_time();
+    if (now < playerInvulnUntil) return;
+    playerHP -= 1;
+    playerInvulnUntil = now + PLAYER_INVULN_MS;
+    playPlayerHitSound();
+    document.getElementById('hp').textContent = String(Math.max(0, playerHP));
+    if (playerHP <= 0) triggerGameOver();
+  }
+
+  function triggerGameOver() {
+    running = false;
+    stage = 'gameOver';
+    const overlay = document.getElementById('overlay');
+    const startBtn = document.getElementById('start-btn');
+    document.getElementById('overlay-title').textContent = 'You Went Down!';
+    document.getElementById('overlay-msg').innerHTML =
+      `A human gunned you down on Level ${level} with <b>${caught}</b> caught and a horde of <b>${pals.length + 1}</b>.` +
+      `<br>Watch for the red targeting line and get clear of the marked spot before they fire.`;
+    startBtn.textContent = 'Retry Level';
+    overlay.classList.remove('hidden');
+  }
+
+  function randomWalkablePointLive() {
+    const t = walkableTiles[(Math.random() * walkableTiles.length) | 0];
+    return { x: t.x * TILE + TILE / 2, y: t.y * TILE + TILE / 2 };
+  }
+
+  function updateGuns() {
+    const now = performance_time();
+    if (guns.length < MAX_GUNS && now >= nextGunSpawnAt) {
+      const pt = randomWalkablePointLive();
+      guns.push({ x: pt.x, y: pt.y });
+      nextGunSpawnAt = now + GUN_SPAWN_MS * (0.7 + Math.random() * 0.6);
+    }
+  }
+
   function updateHumans() {
+    const now = performance_time();
     for (const h of humans) {
+      if (h.canHide) {
+        if (h.hiding) {
+          if (now >= h.hideUntil) {
+            h.hiding = false;
+            h.hideCooldownUntil = now + HIDE_COOLDOWN_MS;
+          } else {
+            continue;
+          }
+        } else if (now >= h.hideCooldownUntil) {
+          const door = findNearestDoor(h.x, h.y, DOOR_SEEK_R);
+          if (door && (h.fleeing || Math.random() < 0.0025)) {
+            if (dist(h, door) < 6) {
+              h.hiding = true;
+              h.fleeing = false;
+              h.vx = 0; h.vy = 0;
+              h.hideUntil = now + HIDE_DURATION_MS;
+              h.x = door.x; h.y = door.y;
+              continue;
+            }
+            const desired = Math.atan2(door.y - h.y, door.x - h.x);
+            const angle = steerOpen(h.x, h.y, h.r, desired, h.r + 8);
+            const spd = h.fleeing ? SPEED_HUMAN_FLEE : SPEED_HUMAN_WANDER;
+            h.vx = Math.cos(angle) * spd;
+            h.vy = Math.sin(angle) * spd;
+            moveEntity(h, h.vx, h.vy);
+            continue;
+          }
+        }
+      }
+
+      if (h.armed) {
+        if (h.aiming) {
+          if (now >= h.aimEndsAt) resolveShot(h);
+          continue;
+        }
+        if (now >= h.fireCooldownUntil) {
+          const target = findShootableZombie(h);
+          if (target) {
+            h.aiming = true;
+            h.aimStartAt = now;
+            h.aimEndsAt = now + AIM_DURATION_MS;
+            h.aimTarget = { x: target.x, y: target.y };
+            continue;
+          }
+        }
+      } else if (!h.canHide) {
+        for (let gi = guns.length - 1; gi >= 0; gi--) {
+          if (dist(h, guns[gi]) < GUN_PICKUP_R) {
+            guns.splice(gi, 1);
+            h.armed = true;
+            h.ammo = AMMO_PER_GUN;
+            h.fireCooldownUntil = now + 400;
+            break;
+          }
+        }
+      }
+
       const { entity, d } = nearestZombieTo(h);
       let fleeFrom = null;
 
@@ -1182,6 +1512,22 @@
     }
   }
 
+  function spawnEliminationBurst(x, y) {
+    const n = 8;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + Math.random() * 0.4;
+      const speed = 0.6 + Math.random() * 1.2;
+      particles.push({
+        x, y,
+        vx: Math.cos(a) * speed,
+        vy: Math.sin(a) * speed,
+        life: 1,
+        decay: 0.05 + Math.random() * 0.02,
+        color: Math.random() < 0.5 ? '#8a8a8a' : '#c94f4f',
+      });
+    }
+  }
+
   function updateParticles() {
     for (const p of particles) {
       p.x += p.vx;
@@ -1237,6 +1583,7 @@
     const zombies = [player, ...pals];
     const stillFree = [];
     for (const h of humans) {
+      if (h.hiding) { stillFree.push(h); continue; }
       let wasCaught = false;
       for (const z of zombies) {
         if (dist(h, z) < CATCH_R) {
@@ -1264,11 +1611,60 @@
     updatePlayer();
     updatePals();
     updateHumans();
+    updateGuns();
     checkCatches();
     document.getElementById('time').textContent = formatTime(performance_time() - levelStartTime);
   }
 
   // ---------- Drawing ----------
+  function drawGunPickup(g) {
+    ctx.save();
+    const bob = Math.sin(performance_time() * 0.006 + g.x) * 1.2;
+    ctx.translate(g.x, g.y + bob);
+    ctx.fillStyle = 'rgba(255, 210, 90, 0.25)';
+    ctx.beginPath();
+    ctx.arc(0, 2, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.rotate(-0.3);
+    ctx.fillStyle = '#3a3a3a';
+    ctx.fillRect(-4, -1.5, 8, 3);
+    ctx.fillRect(-4, -1.5, 2.5, 5);
+    ctx.fillStyle = '#1c1c1c';
+    ctx.fillRect(2.5, -2.5, 2, 1.5);
+    ctx.restore();
+  }
+
+  function drawArmedIndicator(h) {
+    const pulse = 0.5 + 0.5 * Math.sin(performance_time() * 0.006);
+    ctx.strokeStyle = `rgba(255, 90, 70, ${0.35 + pulse * 0.25})`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(h.x, h.y, 10, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  function drawAimTelegraph(h) {
+    const now = performance_time();
+    const total = h.aimEndsAt - h.aimStartAt;
+    const t = total > 0 ? Math.min(1, (now - h.aimStartAt) / total) : 1;
+    const alpha = 0.25 + t * 0.55;
+
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = `rgba(255, 60, 40, ${alpha})`;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(h.x, h.y);
+    ctx.lineTo(h.aimTarget.x, h.aimTarget.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle = `rgba(255, 40, 30, ${alpha})`;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(h.aimTarget.x, h.aimTarget.y, HIT_RADIUS * (0.5 + 0.5 * t), 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
   function drawPlayerGlow(x, y) {
     const pulse = 0.5 + 0.5 * Math.sin(performance_time() * 0.004);
     const r = 16 + pulse * 5;
@@ -1307,15 +1703,28 @@
   function draw() {
     ctx.drawImage(bg, 0, 0, W, H);
 
+    for (const g of guns) drawGunPickup(g);
+
     drawTrail();
 
-    for (const h of humans) drawSprite(h.sprite, h.x, h.y);
+    for (const h of humans) {
+      if (h.hiding) continue;
+      drawSprite(h.sprite, h.x, h.y);
+      if (h.armed) drawArmedIndicator(h);
+    }
     for (const p of pals) drawSprite(palSprite, p.x, p.y);
 
     drawPlayerGlow(player.x, player.y);
-    drawSprite(playerSprite, player.x, player.y);
+    const flashing = performance_time() < playerInvulnUntil;
+    if (!flashing || Math.floor(performance_time() / 100) % 2 === 0) {
+      drawSprite(playerSprite, player.x, player.y);
+    }
 
     drawParticles();
+
+    for (const h of humans) {
+      if (h.aiming) drawAimTelegraph(h);
+    }
   }
 
   // ---------- Main loop ----------
