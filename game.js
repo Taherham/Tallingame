@@ -10,11 +10,10 @@
   const RENDER_SCALE = 3; // internal supersampling for crisp, non-pixelated art
 
   const ENTITY_R = 6;
-  const FORMATION_R = 26;
   const PAL_CHASE_R = 95;
   const PANIC_R = 42;
   const SPEED_HUMAN_WANDER = 0.6;
-  const SPEED_PAL_FOLLOW = 1.5;
+  const SPEED_PAL_WANDER = 1.5;
 
   const SPRINT_COOLDOWN_MS = 30000;
   const SPRINT_DURATION_MS = 3000;
@@ -34,11 +33,11 @@
   // unfair.
   const LEVELS = [
     { humanCount: 30, fleeSpeed: 1.15, fleeRadius: 38, catchRadius: 12, minBlock: 3, maxBlock: 4, seed: 1001,
-      purpleShirtRatio: 0.12, gunSpawnMs: 10000, maxGuns: 1, aimDurationMs: 1000 },
+      purpleShirtRatio: 0.12, gunSpawnMs: 7000, maxGuns: 2, aimDurationMs: 1000 },
     { humanCount: 45, fleeSpeed: 1.30, fleeRadius: 41, catchRadius: 11, minBlock: 3, maxBlock: 5, seed: 2002,
-      purpleShirtRatio: 0.16, gunSpawnMs: 8000, maxGuns: 2, aimDurationMs: 850 },
+      purpleShirtRatio: 0.16, gunSpawnMs: 5500, maxGuns: 3, aimDurationMs: 850 },
     { humanCount: 65, fleeSpeed: 1.45, fleeRadius: 44, catchRadius: 10, minBlock: 4, maxBlock: 6, seed: 3003,
-      purpleShirtRatio: 0.20, gunSpawnMs: 6500, maxGuns: 3, aimDurationMs: 700 },
+      purpleShirtRatio: 0.20, gunSpawnMs: 4000, maxGuns: 5, aimDurationMs: 700 },
   ];
 
   // Zombies are deliberately a bit slower than a fleeing human -- catching
@@ -58,10 +57,10 @@
 
   // Gun/door mechanics: tuned by level above via the fields on LEVELS;
   // everything else about them is constant difficulty-independent feel.
-  const AMMO_PER_GUN = 3;
-  const SHOOT_RANGE = 130;
+  const AMMO_PER_GUN = 6;
+  const SHOOT_RANGE = 150;
   const HIT_RADIUS = 14;
-  const FIRE_COOLDOWN_MS = 2200;
+  const FIRE_COOLDOWN_MS = 1400;
   const GUN_PICKUP_R = 9;
   const DOOR_SEEK_R = 70;
   const HIDE_DURATION_MS = 5000;
@@ -742,8 +741,8 @@
 
   // Horde-direction joystick: appears once you have your first pal. While
   // held, the whole horde generally heads that way instead of running its
-  // usual chase-nearest/orbit-you logic; release it and they go right back
-  // to hunting on their own.
+  // usual chase-nearest/wander logic; release it and they go right back
+  // to hunting independently.
   const hordeJoystickEl = document.getElementById('horde-joystick');
   const hordeJoystickBase = document.getElementById('horde-joystick-base');
   const hordeJoystickKnob = document.getElementById('horde-joystick-knob');
@@ -1236,15 +1235,14 @@
 
   function updatePals() {
     const hordeCommand = hordeJoystickActive && (hordeJoystickVec.x !== 0 || hordeJoystickVec.y !== 0);
-    const count = pals.length;
 
-    pals.forEach((pal, i) => {
+    for (const pal of pals) {
       if (hordeCommand) {
         const mag = Math.min(1, Math.hypot(hordeJoystickVec.x, hordeJoystickVec.y));
         const desired = Math.atan2(hordeJoystickVec.y, hordeJoystickVec.x);
         const angle = steerOpen(pal.x, pal.y, pal.r, desired, pal.r + 8);
         moveEntity(pal, Math.cos(angle) * SPEED_PAL_CHASE * mag, Math.sin(angle) * SPEED_PAL_CHASE * mag);
-        return;
+        continue;
       }
 
       let target = null, td = Infinity;
@@ -1257,19 +1255,30 @@
         const desired = Math.atan2(target.y - pal.y, target.x - pal.x);
         const angle = steerOpen(pal.x, pal.y, pal.r, desired, pal.r + 8);
         moveEntity(pal, Math.cos(angle) * SPEED_PAL_CHASE, Math.sin(angle) * SPEED_PAL_CHASE);
+        pal.wanderT = 0;
       } else {
-        const orbit = (i / Math.max(count, 1)) * Math.PI * 2 + performance_time() * 0.0005;
-        const tx = player.x + Math.cos(orbit) * FORMATION_R;
-        const ty = player.y + Math.sin(orbit) * FORMATION_R;
-        const dx = tx - pal.x, dy = ty - pal.y;
-        const d = Math.hypot(dx, dy);
-        if (d > 4) {
-          const desired = Math.atan2(dy, dx);
+        // Nothing to chase and no horde command -- roam independently
+        // instead of orbiting the player, exactly like a loose human wander.
+        pal.wanderT -= 1;
+        if (pal.wanderT <= 0) {
+          const desired = Math.random() * Math.PI * 2;
           const angle = steerOpen(pal.x, pal.y, pal.r, desired, pal.r + 8);
-          moveEntity(pal, Math.cos(angle) * SPEED_PAL_FOLLOW, Math.sin(angle) * SPEED_PAL_FOLLOW);
+          pal.vx = Math.cos(angle) * SPEED_PAL_WANDER;
+          pal.vy = Math.sin(angle) * SPEED_PAL_WANDER;
+          pal.wanderT = 60 + Math.random() * 90;
+        } else if (pal.vx !== 0 || pal.vy !== 0) {
+          const lookX = pal.x + pal.vx * 6, lookY = pal.y + pal.vy * 6;
+          if (collides(lookX, lookY, pal.r)) {
+            const curAngle = Math.atan2(pal.vy, pal.vx);
+            const angle = steerOpen(pal.x, pal.y, pal.r, curAngle, pal.r + 8);
+            const speed = Math.hypot(pal.vx, pal.vy);
+            pal.vx = Math.cos(angle) * speed;
+            pal.vy = Math.sin(angle) * speed;
+          }
         }
+        moveEntity(pal, pal.vx, pal.vy);
       }
-    });
+    }
   }
 
   function findNearestDoor(x, y, maxR) {
@@ -1588,7 +1597,7 @@
       for (const z of zombies) {
         if (dist(h, z) < CATCH_R) {
           wasCaught = true;
-          pals.push({ x: h.x, y: h.y, r: ENTITY_R });
+          pals.push({ x: h.x, y: h.y, r: ENTITY_R, vx: 0, vy: 0, wanderT: 0 });
           caught += 1;
           spawnCatchBurst(h.x, h.y);
           playInfectSound(h.x);
