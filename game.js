@@ -12,8 +12,8 @@
   const ENTITY_R = 6;
   const PAL_CHASE_R = 95;
   const PANIC_R = 42;
-  const SPEED_HUMAN_WANDER = 0.6;
-  const SPEED_PAL_WANDER = 1.5;
+  const SPEED_HUMAN_WANDER = 0.8;
+  const SPEED_PAL_WANDER = 2.0;
 
   const SPRINT_COOLDOWN_MS = 30000;
   const SPRINT_DURATION_MS = 3000;
@@ -32,12 +32,12 @@
   // actually comparable, and there's no chance of a random layout being
   // unfair.
   const LEVELS = [
-    { humanCount: 30, fleeSpeed: 1.15, fleeRadius: 38, catchRadius: 12, minBlock: 3, maxBlock: 4, seed: 1001,
-      purpleShirtRatio: 0.12, gunSpawnMs: 7000, maxGuns: 2, aimDurationMs: 1000 },
-    { humanCount: 45, fleeSpeed: 1.30, fleeRadius: 41, catchRadius: 11, minBlock: 3, maxBlock: 5, seed: 2002,
-      purpleShirtRatio: 0.16, gunSpawnMs: 5500, maxGuns: 3, aimDurationMs: 850 },
-    { humanCount: 65, fleeSpeed: 1.45, fleeRadius: 44, catchRadius: 10, minBlock: 4, maxBlock: 6, seed: 3003,
-      purpleShirtRatio: 0.20, gunSpawnMs: 4000, maxGuns: 5, aimDurationMs: 700 },
+    { humanCount: 30, fleeSpeed: 1.50, fleeRadius: 38, catchRadius: 12, minBlock: 3, maxBlock: 4, seed: 1001,
+      purpleShirtRatio: 0.12, gunSpawnMs: 5000, maxGuns: 3, aimDurationMs: 900 },
+    { humanCount: 45, fleeSpeed: 1.70, fleeRadius: 41, catchRadius: 11, minBlock: 3, maxBlock: 5, seed: 2002,
+      purpleShirtRatio: 0.16, gunSpawnMs: 4000, maxGuns: 4, aimDurationMs: 750 },
+    { humanCount: 65, fleeSpeed: 1.90, fleeRadius: 44, catchRadius: 10, minBlock: 4, maxBlock: 6, seed: 3003,
+      purpleShirtRatio: 0.20, gunSpawnMs: 2800, maxGuns: 7, aimDurationMs: 600 },
   ];
 
   // Zombies are deliberately a bit slower than a fleeing human -- catching
@@ -57,10 +57,10 @@
 
   // Gun/door mechanics: tuned by level above via the fields on LEVELS;
   // everything else about them is constant difficulty-independent feel.
-  const AMMO_PER_GUN = 6;
-  const SHOOT_RANGE = 150;
-  const HIT_RADIUS = 14;
-  const FIRE_COOLDOWN_MS = 1400;
+  const AMMO_PER_GUN = 9;
+  const SHOOT_RANGE = 170;
+  const HIT_RADIUS = 20;
+  const FIRE_COOLDOWN_MS = 900;
   const GUN_PICKUP_R = 9;
   const DOOR_SEEK_R = 70;
   const HIDE_DURATION_MS = 5000;
