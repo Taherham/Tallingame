@@ -326,7 +326,11 @@ function checkAnswer() {
   els.feedbackBanner.classList.remove("hidden");
   els.feedbackBanner.classList.toggle("correct", correct);
   els.feedbackBanner.classList.toggle("incorrect", !correct);
-  els.feedbackText.textContent = correct ? "Nice! That's correct." : "Not quite — the right answer is highlighted above.";
+  els.feedbackText.textContent = correct
+    ? "Nice! That's correct."
+    : q.type === "mc"
+      ? "Not quite — the right answer is highlighted in green."
+      : "Not quite — the steps marked red are out of place.";
 
   els.actionBtn.disabled = false;
   els.actionBtn.textContent = session.hearts <= 0 ? "Continue" : session.index === session.questions.length - 1 ? "Finish" : "Continue";
