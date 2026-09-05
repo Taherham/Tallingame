@@ -7,7 +7,8 @@
 //   YOUTUBE_API_KEY=... node shrimp/tools/curate-videos.mjs --verify    # re-check that chosen videos still exist and embed
 //
 // Rules: embeddable, under 5 minutes, English, from channels we trust when possible.
-// Quota: each search costs 100 units of the free 10,000/day. 18 units x 4 queries = 7,200. Run it once a day.
+// Quota: each search costs 100 units of the free 10,000/day. 18 units x 4 queries = 7,200 plus a few
+// units for video details. Run the full curation at most once a day.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -66,16 +67,13 @@ async function yt(endpoint, params) {
 }
 
 async function searchQuery(q) {
-  // `short` is under 4 minutes; `medium` is 4-20. We take both and filter to under 5 minutes by real duration.
-  const ids = new Set();
-  for (const videoDuration of ["short", "medium"]) {
-    const r = await yt("search", {
-      part: "id", type: "video", q, maxResults: 15, videoEmbeddable: "true", videoSyndicated: "true",
-      relevanceLanguage: "en", safeSearch: "strict", videoDuration,
-    });
-    r.items.forEach((it) => ids.add(it.id.videoId));
-  }
-  return [...ids];
+  // One search per query (100 quota units). Duration is filtered afterwards from videos.list,
+  // because YouTube's own duration buckets (short = under 4 min) don't match our 5-minute rule.
+  const r = await yt("search", {
+    part: "id", type: "video", q, maxResults: 30, videoEmbeddable: "true", videoSyndicated: "true",
+    relevanceLanguage: "en", safeSearch: "strict",
+  });
+  return r.items.map((it) => it.id.videoId).filter(Boolean);
 }
 
 async function videoDetails(ids) {
@@ -100,6 +98,12 @@ function score(v, query) {
   query.toLowerCase().split(/\s+/).filter((w) => w.length > 3 && w !== "bjj").forEach((w) => { if (title.includes(w)) s += 3; });
   if (/beginner|basics|fundamental|how to|tutorial|explained/.test(title)) s += 4;
   if (/highlight|compilation|vs\.?|match|fight|funny|reaction|podcast/.test(title)) s -= 20;
+  // Perspective mismatch: a video about passing, escaping or countering a position when the
+  // query is about playing or attacking from it (and vice versa) teaches the wrong side.
+  const q = query.toLowerCase();
+  for (const word of ["pass", "escape", "defen", "counter", "stop", "against"]) {
+    if (title.includes(word) && !q.includes(word)) s -= 12;
+  }
   return Math.round(s);
 }
 

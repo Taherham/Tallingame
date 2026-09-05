@@ -11,7 +11,12 @@ const BLUE_UNITS = [
       "lasso guard bjj tutorial",
       "collar sleeve guard bjj",
     ],
-    videos: [],
+    videos: [
+      {"id":"iTwjK-ou0js","title":"How to Improve your De La Riva Guard by MIKEY MUSUMECI","channel":"Bernardo Faria BJJ Fanatics","duration":52},
+      {"id":"qpmc6uClx4o","title":"Intro to Spider Guard & How to Use It | BJJ Guards","channel":"Knight Jiu-Jitsu","duration":281},
+      {"id":"kFCAsm0A85M","title":"Lasso Guard Sweep & Arm Drag Combo","channel":"MMA Leech","duration":293},
+      {"id":"776BVyZM504","title":"Guard Players - Stop getting your guard passed 2 sweeps in collar sleeve","channel":"Sticks and Stones BJJ","duration":168}
+    ],
     keyIdeas: [
       "Open guard is grips plus angles. Lose the grips and the guard collapses.",
       "Every hook does one job: off-balance them or hold distance. Know which one you're using.",
@@ -60,7 +65,12 @@ const BLUE_UNITS = [
       "single leg x guard entry bjj",
       "seated guard concepts bjj distance management",
     ],
-    videos: [],
+    videos: [
+      {"id":"mnZi33gJ5pU","title":"7 Butterfly Guard Sweeps to Build an Effective Sweeping Game","channel":"Chewjitsu","duration":222},
+      {"id":"1dz8AQsexyQ","title":"4 X-GUARD ENTRIES that you need to know! 💥 #bjj #brazilianjiujitsu #jiujitsu","channel":"Jordan Teaches Jiujitsu","duration":47},
+      {"id":"usWlT7CW4HU","title":"Bjj X Guard Entry from Half Guard","channel":"Chewjitsu","duration":247},
+      {"id":"y0C8vIeCrc0","title":"2 Single Leg X Entry and Sweep by Marcelo Garcia","channel":"BJJ Fanatics","duration":179}
+    ],
     keyIdeas: [
       "Butterfly guard dies when you lie flat. Sit up, get chest to chest.",
       "X-guard turns their standing base into your sweep. Stretch them, then lift.",
@@ -109,7 +119,12 @@ const BLUE_UNITS = [
       "plan b sweep half guard",
       "deep half guard basics bjj",
     ],
-    videos: [],
+    videos: [
+      {"id":"RdlbVK_9bpA","title":"5 tips for an IMPASSABLE Half Guard 🔥🥋 #bjj #brazilianjiujitsu #jiujitsu","channel":"Jordan Teaches Jiujitsu","duration":61},
+      {"id":"-S1lhWAX2ps","title":"Roberto 'Gordo' Correa Teaches the Old School Half Guard Sweep","channel":"Stephan Kesting","duration":136},
+      {"id":"nRFFmWCcgkE","title":"Escape and Attack From Bottom Half Guard by Brian Glick","channel":"Bernardo Faria BJJ Fanatics","duration":59},
+      {"id":"BAw7EZ0jalc","title":"How to Go To Deep Half Guard From Closed Guard","channel":"Bernardo Faria BJJ Fanatics","duration":60}
+    ],
     keyIdeas: [
       "Half guard on your side is offense. Half guard flat on your back is a pin.",
       "The underhook is the whole game: get it and you sweep or take the back.",
@@ -158,7 +173,12 @@ const BLUE_UNITS = [
       "how to invert bjj granby roll tutorial",
       "guard retention against toreando pass",
     ],
-    videos: [],
+    videos: [
+      {"id":"dKjFzCqEc-c","title":"3 tips to improve your guard retention #shorts #bjj #lachlangiles #submeta #nogi  #jiujitsu #guard","channel":"Absolute MMA St Kilda - Melbourne","duration":72},
+      {"id":"fIFM4fzVqC0","title":"Through the Legs (Guard Retention)","channel":"Absolute MMA St Kilda - Melbourne","duration":240},
+      {"id":"-Ucqg8SJ8_I","title":"The Impassable Guard - White Belt Granby Roll - Invisible Jiu Jitsu","channel":"Invisible Jiu Jitsu","duration":179},
+      {"id":"T9ckJr1MV7Q","title":"Three Simple Tricks To Massively Improve Guard Retention","channel":"JonThomasBJJ","duration":253}
+    ],
     keyIdeas: [
       "Retention is hips first. If your hips face them, your legs can get back in front.",
       "Frames buy time; pummeling wins the position back.",
@@ -207,7 +227,12 @@ const BLUE_UNITS = [
       "leg drag pass tutorial bjj",
       "long step pass bjj tutorial",
     ],
-    videos: [],
+    videos: [
+      {"id":"rljiPRwM1Oc","title":"The Over-Under Pass in No Gi by Bernardo Faria","channel":"Stephan Kesting","duration":176},
+      {"id":"EaZPO3v4OrQ","title":"Getting Stuck in Half Guard in BJJ? Try This Armlock Passing Strategy","channel":"Chewjitsu","duration":240},
+      {"id":"n596l_pJi-E","title":"How To Do the Leg Drag Pass, Theory and Practice","channel":"Stephan Kesting","duration":235},
+      {"id":"4e902BZ4XvY","title":"BJJ Moves - Long Step Leg Drag","channel":"BJJ Fanatics","duration":81}
+    ],
     keyIdeas: [
       "Pressure passing makes them carry your weight until they can't move. Slow is fine.",
       "The leg drag turns their hips away from you. That's the whole point.",
@@ -256,7 +281,12 @@ const BLUE_UNITS = [
       "arm drag to back take seated guard bjj",
       "bjj submission chains from closed guard",
     ],
-    videos: [],
+    videos: [
+      {"id":"OGq21nmoG1g","title":"Chaining Together Triangle and Omoplata  by Mikey Musumeci","channel":"BJJ Fanatics","duration":127},
+      {"id":"eIGogiDi0XI","title":"Kimura Trap - An In Depth Study","channel":"JeanJacquesMachado","duration":293},
+      {"id":"p8Ly9dhK0D4","title":"ARM DRAG TO BACK TAKE - GORDON RYAN","channel":"BJJ Fanatics","duration":60},
+      {"id":"Mt10mEk4pms","title":"BJJ Flow Drill: Armbar Triangle Omoplata From Closed Guard","channel":"MMA Leech","duration":242}
+    ],
     keyIdeas: [
       "A defended attack is a setup. The defense to one submission is the entry to the next.",
       "The kimura grip is a control before it's a submission.",
@@ -305,7 +335,12 @@ const BLUE_UNITS = [
       "chair sit back take bjj",
       "clock choke from turtle bjj",
     ],
-    videos: [],
+    videos: [
+      {"id":"70uaVeiMe38","title":"Take the Back from Turtle Position by GORDON RYAN","channel":"Bernardo Faria BJJ Fanatics","duration":52},
+      {"id":"UIWX13Sx-zw","title":"3 Back Takes From Mount Using The Gift Wrap Control","channel":"MMA Leech","duration":224},
+      {"id":"CvhI6U-IN_8","title":"The Best Way to Get Back Mount for White Belts (I still use at Black Belt)","channel":"Chewjitsu","duration":243},
+      {"id":"jAGbvarXopw","title":"How to Do the Clock Choke in 5 Easy Steps","channel":"Stephan Kesting","duration":192}
+    ],
     keyIdeas: [
       "Seatbelt first, hooks second. The upper body connection is what keeps the back.",
       "When they turn away from you, they're giving you the back. Follow.",
@@ -354,7 +389,12 @@ const BLUE_UNITS = [
       "heel hook defense awareness bjj",
       "leg lock positions legal ibjjf blue belt",
     ],
-    videos: [],
+    videos: [
+      {"id":"H4yzzjIghMc","title":"Opponent Posts Leg Cross Ashi Garami by John Danaher","channel":"BJJ Fanatics","duration":54},
+      {"id":"q_MJy_g42LM","title":"Understanding Cross Ashi in Jiu Jitsu by Firas Zahabi","channel":"BJJ Fanatics","duration":140},
+      {"id":"nNg9HrxUHqM","title":"50/50 Entry from Open Guard by Fellipe Andrew","channel":"BJJ Fanatics","duration":124},
+      {"id":"Z0WDtUMkBP8","title":"If I Could Know Only One Thing About Defending Heel Hooks","channel":"Absolute MMA St Kilda - Melbourne","duration":170}
+    ],
     keyIdeas: [
       "Control the hips and knee line first. The submission is the last thing, not the first.",
       "Hide your heel. If they can't reach the heel, they can't heel hook.",
@@ -403,7 +443,12 @@ const BLUE_UNITS = [
       "osoto gari ouchi gari for bjj",
       "ibjjf points system explained advantages",
     ],
-    videos: [],
+    videos: [
+      {"id":"LHIMtIYrNXo","title":"COLLAR TIE: what (not) to do 🥋❗","channel":"Jordan Teaches Jiujitsu","duration":59},
+      {"id":"KzEoF49h-Ic","title":"Ankle Pick Takedown for No Gi BJJ","channel":"Chewjitsu","duration":195},
+      {"id":"ommBYBxcCuE","title":"Osoto Gari's Most Important Detail","channel":"Shintaro Higashi","duration":263},
+      {"id":"hjwFc7FwHS4","title":"Dominate Grips & Get the Takedown in BJJ with Ankle Pick","channel":"Chewjitsu","duration":254}
+    ],
     keyIdeas: [
       "A snapdown turns their posture into your front headlock. Pull the head, step back.",
       "Points tell a story: pass 3, sweep 2, mount 4, back 4. Know the story you're telling.",
