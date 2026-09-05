@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#EF6A4D">
+<title>Shrimp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Path -->
+    <section id="view-path" class="view">
+      <header class="top-bar">
+        <div class="brand" id="brand-mark"></div>
+        <div class="stats">
+          <div class="stat stat-streak" title="Day streak"><span class="icon" id="icon-flame"></span><span id="stat-streak">0</span></div>
+          <div class="stat stat-xp" title="Total XP"><span class="icon" id="icon-star"></span><span id="stat-xp">0</span></div>
+        </div>
+      </header>
+      <div id="belt-card" class="belt-card"></div>
+      <div id="path-container" class="path-container"></div>
+    </section>
+
+    <!-- Learn (unit videos) -->
+    <section id="view-learn" class="view hidden">
+      <header class="learn-header">
+        <button id="learn-back" class="icon-btn" aria-label="Back"></button>
+        <div class="learn-title">
+          <div class="eyebrow" id="learn-eyebrow"></div>
+          <h1 id="learn-heading"></h1>
+        </div>
+        <div class="belt-chip" id="learn-belt-chip"></div>
+      </header>
+      <div id="learn-body" class="learn-body"></div>
+      <footer class="sticky-footer">
+        <button id="learn-start" class="primary-btn">Start lessons</button>
+        <div class="footer-note" id="learn-note"></div>
+      </footer>
+    </section>
+
+    <!-- Lesson -->
+    <section id="view-lesson" class="view hidden">
+      <header class="lesson-bar">
+        <button id="lesson-close" class="icon-btn" aria-label="Close lesson"></button>
+        <div class="progress-track"><div id="lesson-progress" class="progress-fill"></div></div>
+        <div class="hearts" id="lesson-hearts"></div>
+      </header>
+      <div id="question-container" class="question-container"></div>
+      <footer class="lesson-footer">
+        <div id="feedback-banner" class="feedback-banner hidden">
+          <div id="feedback-text" class="feedback-text"></div>
+        </div>
+        <button id="action-btn" class="primary-btn" disabled>Check</button>
+      </footer>
+    </section>
+
+    <!-- Lesson complete -->
+    <section id="view-complete" class="view hidden">
+      <div class="result-card">
+        <div id="complete-mascot" class="result-mascot"></div>
+        <div class="eyebrow" id="complete-eyebrow">Lesson complete</div>
+        <h2 id="complete-title">Nice work</h2>
+        <div id="complete-stripe" class="stripe-banner hidden"></div>
+        <div class="result-stats">
+          <div class="result-stat"><span class="label">XP earned</span><span id="complete-xp" class="value">+0</span></div>
+          <div class="result-stat"><span class="label">Accuracy</span><span id="complete-accuracy" class="value">0%</span></div>
+        </div>
+        <button id="complete-continue" class="primary-btn">Continue</button>
+      </div>
+    </section>
+
+    <!-- Out of hearts -->
+    <section id="view-failed" class="view hidden">
+      <div class="result-card">
+        <div id="failed-mascot" class="result-mascot"></div>
+        <div class="eyebrow">Out of hearts</div>
+        <h2>Tap, breathe, go again</h2>
+        <p class="result-msg">Every roll ends in a tap eventually. Rewatch the unit videos if you need to, then retry.</p>
+        <button id="failed-retry" class="primary-btn">Retry lesson</button>
+        <button id="failed-learn" class="secondary-btn">Rewatch the videos</button>
+      </div>
+    </section>
+
+  </div>
+  <script src="js/figures.js"></script>
+  <script src="js/brand.js"></script>
+  <script src="js/white.js"></script>
+  <script src="js/blue.js"></script>
+  <script src="js/curriculum.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

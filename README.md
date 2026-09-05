@@ -1,4 +1,15 @@
-# Zombie Outbreak
+# Tallingame
+
+This repo hosts small, dependency-free browser games/apps. Each lives in its
+own folder (or the root) with a static `index.html` — no build step, no
+server required.
+
+- **Zombie Outbreak** (this folder) — a top-down infection game. See below.
+- **[Shrimp](shrimp/)** — a Duolingo-style jiu-jitsu learning app: a belt-based
+  lesson path with curated short videos, illustrated position quizzes, hearts,
+  XP, streaks, and stripes.
+
+## Zombie Outbreak
 
 A simple top-down browser game. You play as patient zero, leading a growing
 horde of zombies through a city, infecting citizens one by one.
