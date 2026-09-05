@@ -5,8 +5,9 @@ own folder (or the root) with a static `index.html` — no build step, no
 server required.
 
 - **Zombie Outbreak** (this folder) — a top-down infection game. See below.
-- **[Gi Path](jiujitsu/)** — a Duolingo-style jiu-jitsu learning app with a
-  belt-based lesson tree, quizzes, hearts, XP, and streaks.
+- **[Shrimp](shrimp/)** — a Duolingo-style jiu-jitsu learning app: a belt-based
+  lesson path with curated short videos, illustrated position quizzes, hearts,
+  XP, streaks, and stripes.
 
 ## Zombie Outbreak
 
