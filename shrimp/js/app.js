@@ -9,6 +9,8 @@ const GOAL_OPTIONS = [
   { xp: 40, name: "Serious" },
 ];
 const PRACTICE_SIZE = 8;
+// Preview hosts (the claude.ai artifact viewer) forbid embedded frames, so YouTube can't load there.
+const EMBEDS_BLOCKED = /claude\.ai$|claudeusercontent\.com$|\.claude\.com$/i.test(location.hostname) || location.protocol === "blob:";
 
 const $ = (id) => document.getElementById(id);
 const els = {
@@ -365,7 +367,13 @@ function renderLearnBody() {
     if (learnPlaying) {
       const v = unit.videos.find((x) => x.id === learnPlaying);
       const start = v && v.start ? `&start=${v.start}` : "";
-      html += `<div class="video-player"><iframe src="https://www.youtube-nocookie.com/embed/${learnPlaying}?rel=0&modestbranding=1&playsinline=1${start}" title="${v ? v.title : "Video"}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+      const watchUrl = `https://www.youtube.com/watch?v=${learnPlaying}${v && v.start ? `&t=${v.start}` : ""}`;
+      if (EMBEDS_BLOCKED) {
+        html += `<div class="video-player blocked"><div class="blocked-msg">${Brand.icons.video}<div><strong>Video can't play inside this preview.</strong><br>Open it on YouTube, or use the app at its own address.</div></div></div>`;
+      } else {
+        html += `<div class="video-player"><iframe src="https://www.youtube-nocookie.com/embed/${learnPlaying}?rel=0&modestbranding=1&playsinline=1${start}" title="${v ? v.title : "Video"}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+      }
+      html += `<a class="open-youtube" href="${watchUrl}" target="_blank" rel="noopener">${EMBEDS_BLOCKED ? "Open on YouTube" : "Not playing? Open on YouTube"}${Brand.icons.external}</a>`;
     }
     html += `<div class="video-list">` + unit.videos.map((v) => `
       <button class="video-card" data-video="${v.id}">
