@@ -62,6 +62,7 @@ const Brand = (() => {
     heartOutline: stroke('<path d="M12 20s-7-4.4-7-9.5A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.5C19 15.6 12 20 12 20z"/>'),
     close: stroke('<path d="M6 6l12 12M18 6L6 18"/>'),
     back: stroke('<path d="M15 5l-7 7 7 7"/>'),
+    target: stroke('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>'),
     external: stroke('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
   };
 

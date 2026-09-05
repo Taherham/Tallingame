@@ -220,6 +220,131 @@ button:focus-visible, .lesson-node:focus-visible, .choice-btn:focus-visible {
 .belt-stripe { width: 6px; background: #4A4A4A; }
 .belt-stripe.on { background: #FFFFFF; }
 
+/* ---------- Today (daily goal + streak) ---------- */
+
+.today-card {
+  margin: 12px 20px 0;
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 14px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 0 var(--line);
+}
+.today-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.today-xp { font-family: var(--display); font-size: 22px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.today-xp strong { color: var(--coral); font-weight: 700; }
+.goal-btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.goal-track { height: 12px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.goal-fill { height: 100%; border-radius: 6px; background: var(--coral); transition: width 0.4s ease; }
+.goal-fill.met { background: var(--green); }
+.today-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.week { display: flex; gap: 6px; }
+.day { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.day .dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--locked);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  box-sizing: border-box;
+}
+.day .dot svg { width: 14px; height: 14px; }
+.day.active .dot { background: var(--coral); }
+.day.goal .dot { background: var(--green); }
+.day.today .dot { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--teal); }
+.day .letter { font-size: 10px; font-weight: 800; color: var(--muted); }
+.streak-note { font-size: 13px; font-weight: 800; color: var(--coral); white-space: nowrap; }
+
+/* ---------- Practice ---------- */
+
+.practice-card {
+  width: calc(100% - 40px);
+  margin: 12px 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: none;
+  background: var(--teal);
+  box-shadow: 0 5px 0 var(--teal-dark);
+  color: #FFFFFF;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+.practice-card:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--teal-dark); }
+.practice-card.disabled { background: var(--locked); box-shadow: 0 5px 0 var(--locked-dark); color: var(--muted); cursor: not-allowed; }
+.practice-icon { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
+.practice-icon svg { width: 40px; height: 40px; }
+.practice-icon .badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--coral);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px var(--teal);
+}
+.practice-card.disabled .badge { display: none; }
+.practice-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.practice-title { font-family: var(--display); font-size: 18px; font-weight: 600; }
+.practice-sub { font-size: 12px; font-weight: 700; opacity: 0.9; line-height: 1.35; }
+.practice-go { width: 24px; height: 24px; flex-shrink: 0; }
+.practice-go svg { width: 24px; height: 24px; }
+
+.practice-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--teal-tint);
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+.practice-tag svg { width: 16px; height: 16px; }
+.eyebrow.weak { color: var(--coral-dark); }
+
+.goal-banner {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--teal-tint);
+  color: var(--teal-dark);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+.goal-banner svg { width: 22px; height: 22px; flex-shrink: 0; }
+
 /* ---------- Path ---------- */
 
 #view-path { background: var(--ground); min-height: 100vh; }

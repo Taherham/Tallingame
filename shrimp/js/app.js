@@ -1,54 +1,94 @@
-// Shrimp — app logic: progress, belt path, unit learn screens, lessons, stripes.
+// Shrimp — app logic: progress, belt path, unit learn screens, lessons, stripes,
+// daily goal, login streak, and weak-spot practice.
 
 const STORAGE_KEY = "shrimp_progress_v1";
 const START_HEARTS = 3; // 4 questions per lesson: miss 3 and you retry
+const GOAL_OPTIONS = [
+  { xp: 10, name: "Casual" },
+  { xp: 20, name: "Regular" },
+  { xp: 40, name: "Serious" },
+];
+const PRACTICE_SIZE = 8;
 
 const $ = (id) => document.getElementById(id);
 const els = {
   viewPath: $("view-path"), viewLearn: $("view-learn"), viewLesson: $("view-lesson"),
   viewComplete: $("view-complete"), viewFailed: $("view-failed"),
   brandMark: $("brand-mark"), statStreak: $("stat-streak"), statXp: $("stat-xp"),
-  beltCard: $("belt-card"), pathContainer: $("path-container"),
+  beltCard: $("belt-card"), todayCard: $("today-card"), practiceCard: $("practice-card"), pathContainer: $("path-container"),
   learnBack: $("learn-back"), learnEyebrow: $("learn-eyebrow"), learnHeading: $("learn-heading"),
   learnBeltChip: $("learn-belt-chip"), learnBody: $("learn-body"), learnStart: $("learn-start"), learnNote: $("learn-note"),
   lessonClose: $("lesson-close"), lessonProgress: $("lesson-progress"), lessonHearts: $("lesson-hearts"),
   questionContainer: $("question-container"), feedbackBanner: $("feedback-banner"), feedbackText: $("feedback-text"),
   actionBtn: $("action-btn"),
   completeMascot: $("complete-mascot"), completeEyebrow: $("complete-eyebrow"), completeTitle: $("complete-title"),
-  completeStripe: $("complete-stripe"), completeXp: $("complete-xp"), completeAccuracy: $("complete-accuracy"),
+  completeStripe: $("complete-stripe"), completeGoal: $("complete-goal"), completeXp: $("complete-xp"), completeAccuracy: $("complete-accuracy"),
   completeContinue: $("complete-continue"),
   failedMascot: $("failed-mascot"), failedRetry: $("failed-retry"), failedLearn: $("failed-learn"),
 };
 
+// ---------- Dates ----------
+
+const pad2 = (n) => String(n).padStart(2, "0");
+function localDate(offsetDays = 0) {
+  const d = new Date(Date.now() - offsetDays * 86400000);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+const today = () => localDate(0);
+
 // ---------- Progress ----------
 
 function loadProgress() {
-  try {
-    const p = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    return {
-      xp: p.xp || 0,
-      streak: p.streak || 0,
-      lastPlayedDate: p.lastPlayedDate || null,
-      completed: p.completed || {},   // lessonId -> stars 1-3
-      watched: p.watched || {},       // videoId -> true
-      learnSeen: p.learnSeen || {},   // unitId -> true
-    };
-  } catch (e) {
-    return { xp: 0, streak: 0, lastPlayedDate: null, completed: {}, watched: {}, learnSeen: {} };
-  }
+  let p = {};
+  try { p = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch (e) { p = {}; }
+  const progress = {
+    xp: p.xp || 0,
+    completed: p.completed || {},     // lessonId -> stars 1-3
+    watched: p.watched || {},         // videoId -> true
+    learnSeen: p.learnSeen || {},     // unitId -> true
+    dailyGoal: GOAL_OPTIONS.some((g) => g.xp === p.dailyGoal) ? p.dailyGoal : 20,
+    dailyXp: p.dailyXp && p.dailyXp.date ? p.dailyXp : { date: today(), xp: 0 },
+    activeDays: p.activeDays || {},   // "YYYY-MM-DD" -> true (opened the app)
+    goalDays: p.goalDays || {},       // "YYYY-MM-DD" -> true (hit the daily goal)
+    misses: p.misses || {},           // questionId -> how many times missed, net of correct answers
+  };
+  // Migrate the old counter-based streak: credit the last recorded day as active.
+  if (p.lastPlayedDate && !progress.activeDays[p.lastPlayedDate]) progress.activeDays[p.lastPlayedDate] = true;
+  return progress;
 }
 function saveProgress() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (e) { /* private mode */ }
 }
-const todayStr = () => new Date().toISOString().slice(0, 10);
-function bumpStreak() {
-  const today = todayStr();
-  if (progress.lastPlayedDate === today) return;
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  progress.streak = progress.lastPlayedDate === yesterday ? progress.streak + 1 : 1;
-  progress.lastPlayedDate = today;
-}
 let progress = loadProgress();
+
+// Login streak: consecutive days, ending today, on which the app was opened.
+function markActiveToday() {
+  const t = today();
+  if (progress.dailyXp.date !== t) progress.dailyXp = { date: t, xp: 0 };
+  progress.activeDays[t] = true;
+  saveProgress();
+}
+function streak() {
+  let n = 0;
+  while (progress.activeDays[localDate(n)]) n++;
+  return n;
+}
+function todayXp() { return progress.dailyXp.date === today() ? progress.dailyXp.xp : 0; }
+function goalMetToday() { return !!progress.goalDays[today()]; }
+
+// Award XP and report whether this award crossed the daily goal line.
+function awardXp(xp) {
+  const t = today();
+  if (progress.dailyXp.date !== t) progress.dailyXp = { date: t, xp: 0 };
+  progress.xp += xp;
+  progress.dailyXp.xp += xp;
+  let goalJustMet = false;
+  if (progress.dailyXp.xp >= progress.dailyGoal && !progress.goalDays[t]) {
+    progress.goalDays[t] = true;
+    goalJustMet = true;
+  }
+  return goalJustMet;
+}
 
 // ---------- Curriculum helpers ----------
 
@@ -69,8 +109,7 @@ const beltStripes = (belt) => belt.stripeAfterUnits.filter((t) => unitsDone(belt
 const isBeltComplete = (belt) => unitsDone(belt) === belt.units.length;
 const currentBelt = () => CURRICULUM.find((b) => !isBeltComplete(b)) || CURRICULUM[CURRICULUM.length - 1];
 function currentLesson() {
-  const f = FLAT.find((x) => !isLessonDone(x.lesson.id) && isLessonUnlocked(x.lesson.id));
-  return f || null;
+  return FLAT.find((x) => !isLessonDone(x.lesson.id) && isLessonUnlocked(x.lesson.id)) || null;
 }
 const ORDINALS = ["first", "second", "third", "fourth"];
 
@@ -82,6 +121,25 @@ function nextMilestone(belt) {
   belt.units.slice(0, targetUnits).forEach((u) => u.lessons.forEach((l) => { if (!isLessonDone(l.id)) lessonsLeft++; }));
   const label = t ? `your ${ORDINALS[belt.stripeAfterUnits.indexOf(t)]} stripe` : "your promotion";
   return { lessonsLeft, label };
+}
+
+// Weak spots: questions from completed lessons, with the ones you've missed first.
+const questionId = (lesson, i) => `${lesson.id}:${i}`;
+function practicePool() {
+  const pool = [];
+  FLAT.forEach((f) => {
+    if (!isLessonDone(f.lesson.id)) return;
+    f.lesson.questions.forEach((q, i) => pool.push({ q, qid: questionId(f.lesson, i), lesson: f.lesson }));
+  });
+  return pool;
+}
+const weakCount = () => practicePool().filter((p) => (progress.misses[p.qid] || 0) > 0).length;
+function pickPractice() {
+  const pool = practicePool();
+  const weak = pool.filter((p) => (progress.misses[p.qid] || 0) > 0)
+    .sort((a, b) => (progress.misses[b.qid] || 0) - (progress.misses[a.qid] || 0));
+  const rest = shuffle(pool.filter((p) => !((progress.misses[p.qid] || 0) > 0)));
+  return [...weak.slice(0, PRACTICE_SIZE), ...rest].slice(0, PRACTICE_SIZE);
 }
 
 // ---------- Path ----------
@@ -103,10 +161,64 @@ function renderBeltCard() {
     <div class="belt-card-note">${note}</div>`;
 }
 
+function renderTodayCard() {
+  const goal = progress.dailyGoal;
+  const xp = todayXp();
+  const pct = Math.min(100, Math.round((xp / goal) * 100));
+  const met = goalMetToday();
+  const goalName = (GOAL_OPTIONS.find((g) => g.xp === goal) || GOAL_OPTIONS[1]).name;
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = localDate(i);
+    const dt = new Date(Date.now() - i * 86400000);
+    const letter = "SMTWTFS"[dt.getDay()];
+    const cls = ["day", progress.activeDays[d] ? "active" : "", progress.goalDays[d] ? "goal" : "", i === 0 ? "today" : ""].filter(Boolean).join(" ");
+    days.push(`<div class="${cls}" title="${d}"><span class="dot">${progress.goalDays[d] ? Brand.icons.check : ""}</span><span class="letter">${letter}</span></div>`);
+  }
+  const s = streak();
+  els.todayCard.innerHTML = `
+    <div class="today-head">
+      <div><div class="eyebrow">Today's goal</div><div class="today-xp"><strong>${xp}</strong> / ${goal} XP</div></div>
+      <button class="goal-btn" id="goal-btn" aria-label="Change daily goal">${goalName}</button>
+    </div>
+    <div class="goal-track"><div class="goal-fill${met ? " met" : ""}" style="width:${pct}%"></div></div>
+    <div class="today-foot">
+      <div class="week">${days.join("")}</div>
+      <div class="streak-note">${s === 0 ? "Start a streak today" : s === 1 ? "1 day streak" : `${s} day streak`}</div>
+    </div>`;
+  $("goal-btn").addEventListener("click", () => {
+    const i = GOAL_OPTIONS.findIndex((g) => g.xp === progress.dailyGoal);
+    progress.dailyGoal = GOAL_OPTIONS[(i + 1) % GOAL_OPTIONS.length].xp;
+    if (todayXp() >= progress.dailyGoal) progress.goalDays[today()] = true;
+    saveProgress();
+    renderTodayCard();
+  });
+}
+
+function renderPracticeCard() {
+  const pool = practicePool();
+  const weak = weakCount();
+  const enabled = pool.length > 0;
+  const sub = !enabled
+    ? "Finish a lesson first and your misses will show up here."
+    : weak > 0
+      ? `${weak} question${weak === 1 ? "" : "s"} you've missed, plus a few you've learned.`
+      : "Nothing missed right now. Review what you've learned.";
+  els.practiceCard.innerHTML = `
+    <button class="practice-card${enabled ? "" : " disabled"}" id="practice-btn" ${enabled ? "" : "disabled"}>
+      <div class="practice-icon">${weak > 0 ? `<span class="badge">${weak}</span>` : ""}${Brand.icons.target}</div>
+      <div class="practice-text"><div class="practice-title">Practice weak spots</div><div class="practice-sub">${sub}</div></div>
+      <div class="practice-go">${Brand.icons.play}</div>
+    </button>`;
+  if (enabled) $("practice-btn").addEventListener("click", startPractice);
+}
+
 function renderPath() {
-  els.statStreak.textContent = progress.streak;
+  els.statStreak.textContent = streak();
   els.statXp.textContent = progress.xp;
   renderBeltCard();
+  renderTodayCard();
+  renderPracticeCard();
 
   const cur = currentLesson();
   const frag = document.createDocumentFragment();
@@ -138,7 +250,6 @@ function renderPath() {
         const pos = ["c", "l", "c", "r"][i % 4];
         const row = document.createElement("div");
         row.className = `node-row ${pos}`;
-
         const wrap = document.createElement("div");
         wrap.className = "node-wrap";
         const btn = document.createElement("button");
@@ -291,7 +402,7 @@ function startFromLearn() {
   else showView("path");
 }
 
-// ---------- Lesson ----------
+// ---------- Lesson & practice sessions ----------
 
 let session = null;
 
@@ -301,16 +412,14 @@ function shuffle(arr) {
   return a;
 }
 
-function prepareQuestions(lesson) {
-  return lesson.questions.map((q) => {
+// items: [{ q, qid }] -> prepared questions with shuffled choices
+function prepareQuestions(items) {
+  return items.map(({ q, qid }) => {
     if (q.type === "sequence") {
-      return { type: "sequence", prompt: q.prompt, steps: q.steps, poolOrder: shuffle(q.steps.map((_, i) => i)) };
+      return { qid, type: "sequence", prompt: q.prompt, steps: q.steps, poolOrder: shuffle(q.steps.map((_, i) => i)) };
     }
     const order = shuffle(q.choices.map((_, i) => i));
-    return {
-      type: q.type, prompt: q.prompt, position: q.position,
-      choices: order.map((i) => q.choices[i]), correctIndex: order.indexOf(q.answer),
-    };
+    return { qid, type: q.type, prompt: q.prompt, position: q.position, choices: order.map((i) => q.choices[i]), correctIndex: order.indexOf(q.answer) };
   });
 }
 
@@ -318,8 +427,8 @@ function startLesson(lessonId) {
   const f = FLAT.find((x) => x.lesson.id === lessonId);
   if (!f) return;
   session = {
-    lessonId, unit: f.unit, belt: f.belt,
-    questions: prepareQuestions(f.lesson),
+    mode: "lesson", lessonId, unit: f.unit, belt: f.belt,
+    questions: prepareQuestions(f.lesson.questions.map((q, i) => ({ q, qid: questionId(f.lesson, i) }))),
     index: 0, hearts: START_HEARTS, mistakes: 0, correct: 0,
     answered: false, selected: null, seqAnswer: [],
     stripesBefore: beltStripes(f.belt), beltCompleteBefore: isBeltComplete(f.belt),
@@ -328,7 +437,24 @@ function startLesson(lessonId) {
   renderQuestion();
 }
 
+function startPractice() {
+  const items = pickPractice();
+  if (!items.length) return;
+  session = {
+    mode: "practice", lessonId: null, unit: null, belt: currentBelt(),
+    questions: prepareQuestions(items),
+    index: 0, hearts: START_HEARTS, mistakes: 0, correct: 0,
+    answered: false, selected: null, seqAnswer: [],
+  };
+  showView("lesson");
+  renderQuestion();
+}
+
 function renderHearts() {
+  if (session.mode === "practice") {
+    els.lessonHearts.innerHTML = `<span class="practice-tag">${Brand.icons.target}Practice</span>`;
+    return;
+  }
   els.lessonHearts.innerHTML = Brand.icons.heart.repeat(session.hearts) + Brand.icons.heartOutline.repeat(START_HEARTS - session.hearts);
 }
 
@@ -344,7 +470,9 @@ function renderQuestion() {
   const c = els.questionContainer;
   c.innerHTML = "";
 
-  if (q.type === "position") {
+  if (session.mode === "practice" && (progress.misses[q.qid] || 0) > 0) {
+    c.insertAdjacentHTML("beforeend", `<div class="eyebrow weak">Weak spot</div>`);
+  } else if (q.type === "position") {
     c.insertAdjacentHTML("beforeend", `<div class="eyebrow">Name the position</div>`);
   }
   c.insertAdjacentHTML("beforeend", `<div class="question-prompt">${q.prompt}</div>`);
@@ -374,7 +502,6 @@ function renderQuestion() {
     return;
   }
 
-  // sequence
   const answerBox = document.createElement("div");
   answerBox.className = "sequence-answer";
   const pool = document.createElement("div");
@@ -407,6 +534,12 @@ function renderQuestion() {
   c.appendChild(pool);
 }
 
+function recordResult(qid, correct) {
+  const n = progress.misses[qid] || 0;
+  if (correct) { if (n <= 1) delete progress.misses[qid]; else progress.misses[qid] = n - 1; }
+  else progress.misses[qid] = n + 1;
+}
+
 function checkAnswer() {
   const q = session.questions[session.index];
   let correct;
@@ -424,7 +557,9 @@ function checkAnswer() {
     });
   }
   session.answered = true;
-  if (correct) session.correct++; else { session.mistakes++; session.hearts--; }
+  if (correct) session.correct++; else { session.mistakes++; if (session.mode === "lesson") session.hearts--; }
+  recordResult(q.qid, correct);
+  saveProgress();
 
   els.feedbackBanner.classList.remove("hidden");
   els.feedbackBanner.classList.toggle("correct", correct);
@@ -434,17 +569,35 @@ function checkAnswer() {
     : q.type === "sequence" ? "Not quite. The steps marked red are out of place." : "Not quite. The right answer is in green.";
   renderHearts();
   els.actionBtn.disabled = false;
-  els.actionBtn.textContent = session.hearts <= 0 ? "Continue" : session.index === session.questions.length - 1 ? "Finish" : "Continue";
+  const last = session.index === session.questions.length - 1;
+  els.actionBtn.textContent = session.mode === "lesson" && session.hearts <= 0 ? "Continue" : last ? "Finish" : "Continue";
 }
 
 function advance() {
-  if (session.hearts <= 0) {
+  if (session.mode === "lesson" && session.hearts <= 0) {
     els.failedMascot.innerHTML = Brand.mascot({ size: 160, stripes: beltStripes(session.belt), belt: session.belt.color, mood: "sad" });
     showView("failed");
     return;
   }
   session.index++;
-  if (session.index >= session.questions.length) finishLesson(); else renderQuestion();
+  if (session.index >= session.questions.length) {
+    if (session.mode === "practice") finishPractice(); else finishLesson();
+  } else renderQuestion();
+}
+
+function showGoalBanner(goalJustMet) {
+  if (goalJustMet) {
+    els.completeGoal.innerHTML = `${Brand.icons.flame}<div><strong>Daily goal reached.</strong> ${streak()} day streak and counting.</div>`;
+    els.completeGoal.classList.remove("hidden");
+  } else {
+    const left = Math.max(0, progress.dailyGoal - todayXp());
+    if (left > 0 && !goalMetToday()) {
+      els.completeGoal.innerHTML = `${Brand.icons.target}<div>${left} XP to today's goal.</div>`;
+      els.completeGoal.classList.remove("hidden");
+    } else {
+      els.completeGoal.classList.add("hidden");
+    }
+  }
 }
 
 function finishLesson() {
@@ -455,8 +608,7 @@ function finishLesson() {
   const xp = Math.max(10, 20 - session.mistakes * 3);
 
   progress.completed[session.lessonId] = Math.max(progress.completed[session.lessonId] || 0, stars);
-  progress.xp += xp;
-  bumpStreak();
+  const goalJustMet = awardXp(xp);
   saveProgress();
 
   const belt = session.belt;
@@ -466,10 +618,8 @@ function finishLesson() {
   const nextBelt = CURRICULUM[CURRICULUM.indexOf(belt) + 1];
 
   els.completeMascot.innerHTML = Brand.mascot({
-    size: 160,
-    stripes: promoted ? 0 : stripesNow,
-    belt: promoted && nextBelt ? nextBelt.color : belt.color,
-    mood: "excited",
+    size: 160, stripes: promoted ? 0 : stripesNow,
+    belt: promoted && nextBelt ? nextBelt.color : belt.color, mood: "excited",
   });
   els.completeEyebrow.textContent = promoted ? "Promotion" : earnedStripe ? "Stripe earned" : "Lesson complete";
   els.completeTitle.textContent = promoted
@@ -485,6 +635,30 @@ function finishLesson() {
   } else {
     els.completeStripe.classList.add("hidden");
   }
+  showGoalBanner(goalJustMet);
+
+  els.completeXp.textContent = `+${xp}`;
+  els.completeAccuracy.textContent = `${accuracy}%`;
+  showView("complete");
+}
+
+function finishPractice() {
+  els.lessonProgress.style.width = "100%";
+  const total = session.questions.length;
+  const accuracy = Math.round((session.correct / total) * 100);
+  const xp = 4 + session.correct * 2;
+  const goalJustMet = awardXp(xp);
+  saveProgress();
+
+  const belt = session.belt;
+  els.completeMascot.innerHTML = Brand.mascot({ size: 160, stripes: beltStripes(belt), belt: belt.color, mood: "excited" });
+  els.completeEyebrow.textContent = "Practice complete";
+  const remaining = weakCount();
+  els.completeTitle.textContent = remaining === 0 ? "No weak spots left" : session.correct === total ? "Every one of them" : "Sharper than before";
+  els.completeStripe.classList.toggle("hidden", remaining !== 0 && session.correct !== total);
+  if (remaining === 0) els.completeStripe.innerHTML = `<div>You've cleared every question you'd missed. Come back after your next lesson.</div>`;
+  else if (session.correct === total) els.completeStripe.innerHTML = `<div>${remaining} weak spot${remaining === 1 ? "" : "s"} still to clear.</div>`;
+  showGoalBanner(goalJustMet);
 
   els.completeXp.textContent = `+${xp}`;
   els.completeAccuracy.textContent = `${accuracy}%`;
@@ -519,5 +693,15 @@ els.learnStart.addEventListener("click", startFromLearn);
 els.completeContinue.addEventListener("click", () => { session = null; showView("path"); });
 els.failedRetry.addEventListener("click", () => { const id = session.lessonId; session = null; startLesson(id); });
 els.failedLearn.addEventListener("click", () => { const u = session.unit; session = null; openLearn(u); });
+
+// A day counts toward the streak when you open the app. Re-check when the tab comes back after midnight.
+markActiveToday();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    const before = today();
+    markActiveToday();
+    if (!els.viewPath.classList.contains("hidden") && before !== progress.dailyXp.date) renderPath();
+  }
+});
 
 showView("path");

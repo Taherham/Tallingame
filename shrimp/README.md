@@ -33,8 +33,17 @@ rather than opening the file directly when testing the Learn screens.
 - **Stripes.** Each belt has four stripes. Finishing units 2, 4, 6 and 8 earns
   one; finishing all nine promotes you to the next belt. The mascot's belt
   ranks up with you.
-- **Hearts, XP, streaks.** Five hearts per lesson. XP and 1-3 stars per lesson
-  based on accuracy. A day streak across visits.
+- **Hearts, XP, stars.** Three hearts per lesson (four questions, so missing
+  three sends you back to retry). XP and 1-3 stars per lesson based on accuracy.
+- **Daily goal.** An XP target per day: Casual 10, Regular 20 (default), or
+  Serious 40. Tap the goal name on the Today card to change it. Hitting it
+  marks the day green on the week strip.
+- **Login streak.** A day counts when you open the app. The streak is the run
+  of consecutive days ending today.
+- **Practice weak spots.** Every wrong answer is remembered per question. A
+  practice session serves up to 8 questions from lessons you've completed,
+  missed ones first. A correct answer clears one miss; no hearts in practice,
+  but XP counts toward the daily goal.
 - **Progress** lives in the browser's `localStorage` under `shrimp_progress_v1`.
 
 ## Files
