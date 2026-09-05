@@ -39,7 +39,13 @@ rather than opening the file directly when testing the Learn screens.
   Serious 40. Tap the goal name on the Today card to change it. Hitting it
   marks the day green on the week strip.
 - **Login streak.** A day counts when you open the app. The streak is the run
-  of consecutive days ending today.
+  of consecutive days ending today. The first open of each day gets a streak
+  celebration: the mascot pops in, the number rolls up, and milestones (a
+  week, a month, every week after) add confetti and a bigger fanfare.
+- **Sound.** Short synthesized effects for taps, right and wrong answers,
+  lesson and practice complete, daily goal, stripes, promotion, and streaks.
+  Generated with the Web Audio API in `js/sfx.js`, so there are no audio
+  files. The speaker button in the header mutes them; the choice is saved.
 - **Practice weak spots.** Every wrong answer is remembered per question. A
   practice session serves up to 8 questions from lessons you've completed,
   missed ones first. A correct answer clears one miss; no hearts in practice,

@@ -20,6 +20,7 @@
         <div class="stats">
           <div class="stat stat-streak" title="Day streak"><span class="icon" id="icon-flame"></span><span id="stat-streak">0</span></div>
           <div class="stat stat-xp" title="Total XP"><span class="icon" id="icon-star"></span><span id="stat-xp">0</span></div>
+          <button id="sound-btn" class="icon-btn sound-btn" aria-label="Toggle sound"></button>
         </div>
       </header>
       <div id="belt-card" class="belt-card"></div>
@@ -89,7 +90,21 @@
       </div>
     </section>
 
+    <!-- Streak celebration (shown on the first open of each day) -->
+    <div id="streak-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="streak-title">
+      <div class="confetti" id="streak-confetti" aria-hidden="true"></div>
+      <div class="overlay-card">
+        <div id="streak-mascot" class="streak-mascot"></div>
+        <div class="streak-count"><span class="icon" id="streak-flame"></span><span id="streak-number">0</span></div>
+        <h2 id="streak-title">day streak</h2>
+        <p id="streak-msg" class="streak-msg"></p>
+        <div id="streak-week" class="week big"></div>
+        <button id="streak-continue" class="primary-btn">Let's roll</button>
+      </div>
+    </div>
+
   </div>
+  <script src="js/sfx.js"></script>
   <script src="js/figures.js"></script>
   <script src="js/brand.js"></script>
   <script src="js/white.js"></script>

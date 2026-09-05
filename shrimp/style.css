@@ -220,6 +220,84 @@ button:focus-visible, .lesson-node:focus-visible, .choice-btn:focus-visible {
 .belt-stripe { width: 6px; background: #4A4A4A; }
 .belt-stripe.on { background: #FFFFFF; }
 
+/* ---------- Sound toggle ---------- */
+
+.sound-btn { color: var(--muted); padding: 11px; margin-right: -8px; }
+.sound-btn.on { color: var(--teal-dark); }
+
+/* ---------- Streak celebration overlay ---------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  background: var(--ground);
+  animation: overlay-in 0.25s ease-out;
+}
+.overlay-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.streak-mascot { height: 150px; display: flex; align-items: flex-end; justify-content: center; }
+.streak-mascot svg { width: 180px; height: 150px; animation: mascot-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both, mascot-wiggle 0.9s ease-in-out 0.65s 2; transform-origin: 50% 80%; }
+.overlay.milestone .streak-mascot svg { animation: mascot-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both, mascot-bounce 0.7s ease-in-out 0.65s 3; }
+.streak-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--coral);
+  font-family: var(--display);
+  font-size: 84px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  animation: count-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+.streak-count .icon { width: 56px; height: 56px; display: flex; animation: flame-pulse 1.2s ease-in-out 0.8s infinite; }
+.overlay h2 { font-size: 28px; animation: rise-in 0.4s ease-out 0.5s both; }
+.streak-msg { margin: 0; color: var(--text-2); font-weight: 600; font-size: 15px; line-height: 1.45; max-width: 320px; animation: rise-in 0.4s ease-out 0.65s both; }
+.week.big { gap: 10px; margin: 8px 0 14px; animation: rise-in 0.4s ease-out 0.8s both; }
+.week.big .day .dot { width: 32px; height: 32px; }
+.week.big .day .dot svg { width: 18px; height: 18px; }
+.week.big .day.active .dot { animation: dot-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: calc(0.9s + var(--i) * 0.08s); }
+.week.big .day .letter { font-size: 11px; }
+.overlay .primary-btn { max-width: 320px; animation: rise-in 0.4s ease-out 1s both; }
+
+.confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.confetti i {
+  position: absolute;
+  top: -12px;
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti-fall var(--d) ease-in var(--delay) forwards;
+}
+
+@keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mascot-pop { from { transform: scale(0.2) rotate(-20deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes mascot-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-8deg) translateX(-6px); } 75% { transform: rotate(8deg) translateX(6px); } }
+@keyframes mascot-bounce { 0%, 100% { transform: translateY(0) scale(1); } 40% { transform: translateY(-26px) scale(1.06, 0.94); } 60% { transform: translateY(0) scale(0.96, 1.04); } }
+@keyframes count-in { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes flame-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+@keyframes rise-in { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes dot-pop { from { transform: scale(0.3); } to { transform: scale(1); } }
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0); }
+  100% { opacity: 0.9; transform: translate3d(var(--x), 105vh, 0) rotate(var(--r)); }
+}
+
 /* ---------- Today (daily goal + streak) ---------- */
 
 .today-card {
@@ -781,5 +859,6 @@ button:focus-visible, .lesson-node:focus-visible, .choice-btn:focus-visible {
 .stripe-banner .belt { width: 70%; }
 
 @media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; }
+  * { transition: none !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  .confetti { display: none; }
 }

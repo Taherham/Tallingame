@@ -27,6 +27,10 @@ const els = {
   completeStripe: $("complete-stripe"), completeGoal: $("complete-goal"), completeXp: $("complete-xp"), completeAccuracy: $("complete-accuracy"),
   completeContinue: $("complete-continue"),
   failedMascot: $("failed-mascot"), failedRetry: $("failed-retry"), failedLearn: $("failed-learn"),
+  soundBtn: $("sound-btn"),
+  streakOverlay: $("streak-overlay"), streakConfetti: $("streak-confetti"), streakMascot: $("streak-mascot"),
+  streakFlame: $("streak-flame"), streakNumber: $("streak-number"), streakTitle: $("streak-title"),
+  streakMsg: $("streak-msg"), streakWeek: $("streak-week"), streakContinue: $("streak-continue"),
 };
 
 // ---------- Dates ----------
@@ -64,11 +68,14 @@ function saveProgress() {
 let progress = loadProgress();
 
 // Login streak: consecutive days, ending today, on which the app was opened.
+// Returns true the first time the app is opened on a given day.
 function markActiveToday() {
   const t = today();
   if (progress.dailyXp.date !== t) progress.dailyXp = { date: t, xp: 0 };
+  const newDay = !progress.activeDays[t];
   progress.activeDays[t] = true;
   saveProgress();
+  return newDay;
 }
 function streak() {
   let n = 0;
@@ -163,20 +170,89 @@ function renderBeltCard() {
     <div class="belt-card-note">${note}</div>`;
 }
 
-function renderTodayCard() {
-  const goal = progress.dailyGoal;
-  const xp = todayXp();
-  const pct = Math.min(100, Math.round((xp / goal) * 100));
-  const met = goalMetToday();
-  const goalName = (GOAL_OPTIONS.find((g) => g.xp === goal) || GOAL_OPTIONS[1]).name;
+// The last seven days as dots: coral = opened the app, green = hit the goal, ring = today.
+function weekStrip() {
   const days = [];
   for (let i = 6; i >= 0; i--) {
     const d = localDate(i);
     const dt = new Date(Date.now() - i * 86400000);
     const letter = "SMTWTFS"[dt.getDay()];
     const cls = ["day", progress.activeDays[d] ? "active" : "", progress.goalDays[d] ? "goal" : "", i === 0 ? "today" : ""].filter(Boolean).join(" ");
-    days.push(`<div class="${cls}" title="${d}"><span class="dot">${progress.goalDays[d] ? Brand.icons.check : ""}</span><span class="letter">${letter}</span></div>`);
+    days.push(`<div class="${cls}" style="--i:${6 - i}" title="${d}"><span class="dot">${progress.goalDays[d] ? Brand.icons.check : ""}</span><span class="letter">${letter}</span></div>`);
   }
+  return days.join("");
+}
+
+// ---------- Streak celebration ----------
+
+function streakCopy(n) {
+  if (n === 1) return { title: "day streak", msg: "Every streak starts with day one. Come back tomorrow and Shrimp will be waiting." };
+  if (n < 7) return { title: "day streak", msg: [`Two days. That's a habit forming.`, `Three days in. Most people never make it here.`, `Four days. The mat misses you when you're gone.`, `Five days. You're the consistent one now.`, `Six days. One more for a full week.`][n - 2] };
+  if (n === 7) return { title: "One full week", msg: "Seven days straight. That's the hardest week in jiu-jitsu, and you just did it in here too.", milestone: true };
+  if (n === 30) return { title: "One month", msg: "Thirty days in a row. Coaches notice the people who keep showing up. So does Shrimp.", milestone: true };
+  if (n === 100) return { title: "One hundred days", msg: "A hundred days. You've built the kind of consistency belts are made of.", milestone: true };
+  if (n % 30 === 0) return { title: `${n / 30} months`, msg: `${n} days without a miss. That's not a streak anymore, that's who you are.`, milestone: true };
+  if (n % 7 === 0) return { title: `${n / 7} weeks`, msg: `${n} days straight. Another full week on the mat.`, milestone: true };
+  return { title: "day streak", msg: `${n} days and counting. Keep the chain going.` };
+}
+
+function spawnConfetti(count) {
+  const colors = ["#EF6A4D", "#3AA6B9", "#3FB26A", "#2C6FD1", "#F6F3EC", "#F9A08B"];
+  let html = "";
+  for (let i = 0; i < count; i++) {
+    const left = Math.random() * 100;
+    const x = (Math.random() * 160 - 80).toFixed(0) + "px";
+    const r = (Math.random() * 720 - 360).toFixed(0) + "deg";
+    const d = (2.2 + Math.random() * 1.6).toFixed(2) + "s";
+    const delay = (Math.random() * 0.9).toFixed(2) + "s";
+    const c = colors[i % colors.length];
+    const w = 7 + Math.round(Math.random() * 6), h = 10 + Math.round(Math.random() * 8);
+    html += `<i style="left:${left}%; background:${c}; width:${w}px; height:${h}px; --x:${x}; --r:${r}; --d:${d}; --delay:${delay}"></i>`;
+  }
+  els.streakConfetti.innerHTML = html;
+}
+
+function showStreakCelebration(n) {
+  const copy = streakCopy(n);
+  const belt = currentBelt();
+  els.streakOverlay.classList.toggle("milestone", !!copy.milestone);
+  els.streakMascot.innerHTML = Brand.mascot({ size: 180, stripes: beltStripes(belt), belt: belt.color, mood: copy.milestone ? "excited" : "happy" });
+  els.streakFlame.innerHTML = Brand.icons.flame;
+  els.streakTitle.textContent = copy.title;
+  els.streakMsg.textContent = copy.msg;
+  els.streakWeek.innerHTML = weekStrip();
+  els.streakContinue.textContent = n === 1 ? "Let's roll" : copy.milestone ? "Oss!" : "Keep it going";
+  spawnConfetti(copy.milestone ? 90 : n >= 3 ? 24 : 0);
+  els.streakOverlay.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+
+  // Roll the number up, ticking as it goes.
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const steps = reduced ? 1 : Math.min(n, 24);
+  let i = 0;
+  els.streakNumber.textContent = "0";
+  const step = () => {
+    i++;
+    els.streakNumber.textContent = String(Math.round((n * i) / steps));
+    if (i < steps) { if (i % 2 === 0) Sfx.play("tick"); setTimeout(step, 45); }
+    else Sfx.play("streak", n);
+  };
+  setTimeout(step, 350);
+}
+
+function hideStreakCelebration() {
+  els.streakOverlay.classList.add("hidden");
+  els.streakConfetti.innerHTML = "";
+  document.body.style.overflow = "";
+}
+
+function renderTodayCard() {
+  const goal = progress.dailyGoal;
+  const xp = todayXp();
+  const pct = Math.min(100, Math.round((xp / goal) * 100));
+  const met = goalMetToday();
+  const goalName = (GOAL_OPTIONS.find((g) => g.xp === goal) || GOAL_OPTIONS[1]).name;
+  const days = [weekStrip()];
   const s = streak();
   els.todayCard.innerHTML = `
     <div class="today-head">
@@ -499,6 +575,7 @@ function renderQuestion() {
       b.textContent = text;
       b.addEventListener("click", () => {
         if (session.answered) return;
+        Sfx.play("tap");
         session.selected = i;
         list.querySelectorAll(".choice-btn").forEach((x) => x.classList.remove("selected"));
         b.classList.add("selected");
@@ -532,7 +609,7 @@ function renderQuestion() {
       const item = document.createElement("button");
       item.className = "sequence-step";
       item.innerHTML = `<span>${q.steps[stepIdx]}</span>`;
-      item.addEventListener("click", () => { if (session.answered) return; session.seqAnswer.push(stepIdx); renderSeq(); });
+      item.addEventListener("click", () => { if (session.answered) return; Sfx.play("tap"); session.seqAnswer.push(stepIdx); renderSeq(); });
       pool.appendChild(item);
     });
     els.actionBtn.disabled = session.seqAnswer.length !== q.steps.length;
@@ -568,6 +645,7 @@ function checkAnswer() {
   if (correct) session.correct++; else { session.mistakes++; if (session.mode === "lesson") session.hearts--; }
   recordResult(q.qid, correct);
   saveProgress();
+  Sfx.play(correct ? "correct" : "wrong");
 
   els.feedbackBanner.classList.remove("hidden");
   els.feedbackBanner.classList.toggle("correct", correct);
@@ -585,6 +663,7 @@ function advance() {
   if (session.mode === "lesson" && session.hearts <= 0) {
     els.failedMascot.innerHTML = Brand.mascot({ size: 160, stripes: beltStripes(session.belt), belt: session.belt.color, mood: "sad" });
     showView("failed");
+    Sfx.play("fail");
     return;
   }
   session.index++;
@@ -648,6 +727,7 @@ function finishLesson() {
   els.completeXp.textContent = `+${xp}`;
   els.completeAccuracy.textContent = `${accuracy}%`;
   showView("complete");
+  Sfx.play(promoted ? "promotion" : earnedStripe ? "stripe" : goalJustMet ? "goal" : "complete");
 }
 
 function finishPractice() {
@@ -671,6 +751,7 @@ function finishPractice() {
   els.completeXp.textContent = `+${xp}`;
   els.completeAccuracy.textContent = `${accuracy}%`;
   showView("complete");
+  Sfx.play(goalJustMet ? "goal" : "practice");
 }
 
 // ---------- Views ----------
@@ -702,14 +783,30 @@ els.completeContinue.addEventListener("click", () => { session = null; showView(
 els.failedRetry.addEventListener("click", () => { const id = session.lessonId; session = null; startLesson(id); });
 els.failedLearn.addEventListener("click", () => { const u = session.unit; session = null; openLearn(u); });
 
-// A day counts toward the streak when you open the app. Re-check when the tab comes back after midnight.
-markActiveToday();
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    const before = today();
-    markActiveToday();
-    if (!els.viewPath.classList.contains("hidden") && before !== progress.dailyXp.date) renderPath();
+// Sound: browsers only allow audio after a user gesture, so unlock on the first tap anywhere.
+function renderSoundBtn() {
+  els.soundBtn.innerHTML = Sfx.isEnabled() ? Brand.icons.soundOn : Brand.icons.soundOff;
+  els.soundBtn.classList.toggle("on", Sfx.isEnabled());
+  els.soundBtn.setAttribute("aria-label", Sfx.isEnabled() ? "Sound on. Tap to mute." : "Sound off. Tap to unmute.");
+}
+els.soundBtn.addEventListener("click", () => { Sfx.setEnabled(!Sfx.isEnabled()); renderSoundBtn(); });
+renderSoundBtn();
+document.addEventListener("pointerdown", () => Sfx.unlock(), { once: true, capture: true });
+
+els.streakContinue.addEventListener("click", () => { Sfx.play("tap"); hideStreakCelebration(); });
+
+// A day counts toward the streak when you open the app. The first open of the day gets a celebration.
+// Re-check when the tab comes back after midnight.
+function checkNewDay() {
+  const newDay = markActiveToday();
+  if (newDay) {
+    if (!els.viewPath.classList.contains("hidden")) renderPath();
+    showStreakCelebration(streak());
   }
+  return newDay;
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") checkNewDay();
 });
 
-showView("path");
+markActiveToday() ? (showView("path"), showStreakCelebration(streak())) : showView("path");
