@@ -21,6 +21,7 @@
           <div class="stat stat-streak" title="Day streak"><span class="icon" id="icon-flame"></span><span id="stat-streak">0</span></div>
           <div class="stat stat-xp" title="Total XP"><span class="icon" id="icon-star"></span><span id="stat-xp">0</span></div>
           <button id="sound-btn" class="icon-btn sound-btn" aria-label="Toggle sound"></button>
+          <button id="account-btn" class="icon-btn account-btn hidden" aria-label="Account"></button>
         </div>
       </header>
       <div id="belt-card" class="belt-card"></div>
@@ -90,6 +91,20 @@
       </div>
     </section>
 
+    <!-- Account -->
+    <section id="view-account" class="view hidden">
+      <header class="learn-header">
+        <button id="account-back" class="icon-btn" aria-label="Back"></button>
+        <div class="learn-title">
+          <div class="eyebrow">Account</div>
+          <h1 id="account-heading">Save your progress</h1>
+        </div>
+      </header>
+      <div id="account-body" class="learn-body"></div>
+    </section>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
     <!-- Streak celebration (shown on the first open of each day) -->
     <div id="streak-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="streak-title">
       <div class="confetti" id="streak-confetti" aria-hidden="true"></div>
@@ -104,6 +119,9 @@
     </div>
 
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/cloud.js"></script>
   <script src="js/sfx.js"></script>
   <script src="js/figures.js"></script>
   <script src="js/brand.js"></script>

@@ -220,10 +220,70 @@ button:focus-visible, .lesson-node:focus-visible, .choice-btn:focus-visible {
 .belt-stripe { width: 6px; background: #4A4A4A; }
 .belt-stripe.on { background: #FFFFFF; }
 
-/* ---------- Sound toggle ---------- */
+/* ---------- Sound toggle & account ---------- */
 
 .sound-btn { color: var(--muted); padding: 11px; margin-right: -8px; }
 .sound-btn.on { color: var(--teal-dark); }
+.account-btn { color: var(--muted); padding: 11px; margin-right: -8px; position: relative; }
+.account-btn.signed-in { color: var(--teal-dark); }
+.account-btn.signed-in::after { content: ""; position: absolute; right: 8px; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 2px var(--ground); }
+
+.account-card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 2px 0 var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.account-card h2 { font-size: 19px; }
+.account-card p { margin: 0; font-size: 14px; font-weight: 600; color: var(--text-2); line-height: 1.45; }
+.account-mascot { display: flex; justify-content: center; }
+.account-mascot svg { width: 120px; height: 100px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.field input {
+  height: 52px;
+  padding: 0 14px;
+  border: 2.5px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 16px;
+  font-weight: 700;
+}
+.field input:focus { outline: none; border-color: var(--teal); }
+.field-row { display: flex; gap: 10px; align-items: flex-end; }
+.field-row .field { flex: 1; }
+.field-row .secondary-btn { width: auto; padding: 0 18px; height: 52px; flex-shrink: 0; }
+.account-note { font-size: 13px; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.account-note svg { width: 18px; height: 18px; flex-shrink: 0; }
+.account-note.ok { color: var(--green-dark); }
+.account-note.err { color: var(--red-dark); }
+.account-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; font-weight: 700; }
+.account-row .muted { color: var(--muted); font-weight: 600; }
+.provider-btn { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.provider-btn svg { width: 20px; height: 20px; }
+.danger-btn { color: var(--red-dark); border-color: var(--red-tint); }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: calc(100% - 40px);
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+  animation: rise-in 0.25s ease-out;
+}
 
 /* ---------- Streak celebration overlay ---------- */
 

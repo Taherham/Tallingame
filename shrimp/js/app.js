@@ -27,7 +27,9 @@ const els = {
   completeStripe: $("complete-stripe"), completeGoal: $("complete-goal"), completeXp: $("complete-xp"), completeAccuracy: $("complete-accuracy"),
   completeContinue: $("complete-continue"),
   failedMascot: $("failed-mascot"), failedRetry: $("failed-retry"), failedLearn: $("failed-learn"),
-  soundBtn: $("sound-btn"),
+  soundBtn: $("sound-btn"), accountBtn: $("account-btn"),
+  viewAccount: $("view-account"), accountBack: $("account-back"), accountHeading: $("account-heading"), accountBody: $("account-body"),
+  toast: $("toast"),
   streakOverlay: $("streak-overlay"), streakConfetti: $("streak-confetti"), streakMascot: $("streak-mascot"),
   streakFlame: $("streak-flame"), streakNumber: $("streak-number"), streakTitle: $("streak-title"),
   streakMsg: $("streak-msg"), streakWeek: $("streak-week"), streakContinue: $("streak-continue"),
@@ -64,6 +66,9 @@ function loadProgress() {
 }
 function saveProgress() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (e) { /* private mode */ }
+  if (typeof Cloud !== "undefined" && Cloud.currentUser()) {
+    Cloud.schedulePush(() => ({ progress, summary: { xp: progress.xp, streak: streak() } }));
+  }
 }
 let progress = loadProgress();
 
@@ -757,7 +762,7 @@ function finishPractice() {
 // ---------- Views ----------
 
 function showView(name) {
-  const map = { path: els.viewPath, learn: els.viewLearn, lesson: els.viewLesson, complete: els.viewComplete, failed: els.viewFailed };
+  const map = { path: els.viewPath, learn: els.viewLearn, lesson: els.viewLesson, complete: els.viewComplete, failed: els.viewFailed, account: els.viewAccount };
   Object.entries(map).forEach(([k, el]) => el.classList.toggle("hidden", k !== name));
   window.scrollTo(0, 0);
   if (name === "path") renderPath();
@@ -782,6 +787,167 @@ els.learnStart.addEventListener("click", startFromLearn);
 els.completeContinue.addEventListener("click", () => { session = null; showView("path"); });
 els.failedRetry.addEventListener("click", () => { const id = session.lessonId; session = null; startLesson(id); });
 els.failedLearn.addEventListener("click", () => { const u = session.unit; session = null; openLearn(u); });
+
+// ---------- Toast ----------
+
+let toastTimer = null;
+function toast(msg, ms = 2600) {
+  els.toast.textContent = msg;
+  els.toast.classList.remove("hidden");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => els.toast.classList.add("hidden"), ms);
+}
+
+// ---------- Account & sync ----------
+
+let profile = null;
+let accountNote = null; // { text, kind }
+
+function renderAccountBtn() {
+  const configured = Cloud.isConfigured();
+  els.accountBtn.classList.toggle("hidden", !configured);
+  if (!configured) return;
+  const u = Cloud.currentUser();
+  els.accountBtn.innerHTML = Brand.icons.user;
+  els.accountBtn.classList.toggle("signed-in", !!u);
+  els.accountBtn.setAttribute("aria-label", u ? "Account: signed in" : "Account: save your progress");
+}
+
+function openAccount() { accountNote = null; renderAccount(); showView("account"); }
+
+function fmtSince(ts) {
+  if (!ts) return "not yet";
+  const s = Math.round((Date.now() - ts) / 1000);
+  if (s < 5) return "just now";
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.round(s / 60)} min ago`;
+  return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+function renderAccount() {
+  const u = Cloud.currentUser();
+  const belt = currentBelt();
+  const mascot = `<div class="account-mascot">${Brand.mascot({ size: 120, stripes: beltStripes(belt), belt: belt.color })}</div>`;
+  const note = accountNote ? `<div class="account-note ${accountNote.kind || ""}">${accountNote.kind === "ok" ? Brand.icons.check : accountNote.kind === "err" ? Brand.icons.close : Brand.icons.mail}<span>${accountNote.text}</span></div>` : "";
+
+  if (!u) {
+    els.accountHeading.textContent = "Save your progress";
+    const providers = (CONFIG.providers || []).map((p) => `<button class="secondary-btn provider-btn" data-provider="${p}">${Brand.icons.user}Continue with ${p.charAt(0).toUpperCase() + p.slice(1)}</button>`).join("");
+    els.accountBody.innerHTML = `
+      <div class="account-card">
+        ${mascot}
+        <h2>Keep your streak on every device</h2>
+        <p>Sign in and your belt, stripes, streak and weak spots are saved to your account and synced between your phone and any other device. No password: we email you a sign-in link.</p>
+        <form id="email-form" class="field">
+          <label for="email-input">Email</label>
+          <input id="email-input" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+        </form>
+        <button id="email-send" class="primary-btn teal" form="email-form">Email me a sign-in link</button>
+        ${providers}
+        ${note}
+      </div>
+      <div class="account-card">
+        <h2>Nothing is lost either way</h2>
+        <p>Everything you've done so far stays on this phone. When you sign in, it's merged with anything already in your account, and the higher score wins.</p>
+      </div>`;
+    const form = $("email-form");
+    const send = async (e) => {
+      if (e) e.preventDefault();
+      const email = $("email-input").value.trim();
+      if (!email) return;
+      Sfx.play("tap");
+      $("email-send").disabled = true;
+      try {
+        await Cloud.signInWithEmail(email);
+        accountNote = { text: `Check ${email} for your sign-in link. Open it on this device.`, kind: "ok" };
+      } catch (err) {
+        accountNote = { text: err.message || "Couldn't send the link. Try again.", kind: "err" };
+      }
+      renderAccount();
+    };
+    form.addEventListener("submit", send);
+    $("email-send").addEventListener("click", send);
+    els.accountBody.querySelectorAll("[data-provider]").forEach((b) => b.addEventListener("click", async () => {
+      try { await Cloud.signInWithProvider(b.dataset.provider); } catch (err) { accountNote = { text: err.message, kind: "err" }; renderAccount(); }
+    }));
+    return;
+  }
+
+  const st = Cloud.getStatus();
+  els.accountHeading.textContent = "Your account";
+  const syncText = st.error ? `Sync failed: ${st.error}` : st.pending ? "Syncing…" : `Synced ${fmtSince(st.lastSync)}`;
+  els.accountBody.innerHTML = `
+    <div class="account-card">
+      ${mascot}
+      <div class="account-row"><span>Signed in as</span><span class="muted">${u.email || u.id.slice(0, 8)}</span></div>
+      <div class="account-note ${st.error ? "err" : "ok"}">${Brand.icons.cloud}<span>${syncText}</span></div>
+      <div class="field-row">
+        <div class="field"><label for="name-input">Display name</label><input id="name-input" maxlength="24" placeholder="What the leaderboard will call you" value="${(profile && profile.display_name) || ""}"></div>
+        <button id="name-save" class="secondary-btn">Save</button>
+      </div>
+      ${note}
+    </div>
+    <div class="account-card">
+      <div class="account-row"><span>Total XP</span><span>${progress.xp}</span></div>
+      <div class="account-row"><span>Streak</span><span>${streak()} day${streak() === 1 ? "" : "s"}</span></div>
+      <div class="account-row"><span>Lessons done</span><span>${Object.keys(progress.completed).length} of ${FLAT.length}</span></div>
+    </div>
+    <button id="sync-now" class="secondary-btn">Sync now</button>
+    <button id="sign-out" class="secondary-btn danger-btn">Sign out</button>`;
+  $("name-save").addEventListener("click", async () => {
+    const name = $("name-input").value.trim();
+    if (!name) return;
+    try { await Cloud.setDisplayName(name); profile = { display_name: name }; accountNote = { text: "Name saved.", kind: "ok" }; }
+    catch (err) { accountNote = { text: err.message, kind: "err" }; }
+    renderAccount();
+  });
+  $("sync-now").addEventListener("click", async () => {
+    try {
+      const cloud = await Cloud.pull();
+      progress = Cloud.merge(progress, cloud);
+      await Cloud.push(progress, { xp: progress.xp, streak: streak() });
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (e) { /* ignore */ }
+      accountNote = { text: "Everything is up to date.", kind: "ok" };
+    } catch (err) { accountNote = { text: err.message, kind: "err" }; }
+    renderAccount();
+  });
+  $("sign-out").addEventListener("click", async () => {
+    await Cloud.signOut();
+    profile = null;
+    toast("Signed out. Your progress stays on this device.");
+    showView("path");
+  });
+}
+
+// When someone signs in, merge the cloud copy with what's on this device, save, and push.
+async function onSignedIn() {
+  try {
+    const cloud = await Cloud.pull();
+    const before = progress.xp;
+    progress = Cloud.merge(progress, cloud);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (e) { /* ignore */ }
+    await Cloud.push(progress, { xp: progress.xp, streak: streak() });
+    profile = await Cloud.getProfile();
+    toast(cloud && progress.xp > before ? "Signed in. Progress merged from your account." : "Signed in. Your progress is now saved to your account.");
+  } catch (err) {
+    toast("Signed in, but sync failed. We'll retry.");
+  }
+  renderAccountBtn();
+  if (!els.viewPath.classList.contains("hidden")) renderPath();
+  if (!els.viewAccount.classList.contains("hidden")) renderAccount();
+}
+
+if (Cloud.init()) {
+  Cloud.subscribe((u, event) => {
+    renderAccountBtn();
+    if (u && (event === "SIGNED_IN" || event === "INITIAL")) onSignedIn();
+    else if (event === "SYNC" && !els.viewAccount.classList.contains("hidden")) renderAccount();
+  });
+}
+renderAccountBtn();
+els.accountBtn.addEventListener("click", openAccount);
+els.accountBack.innerHTML = Brand.icons.back;
+els.accountBack.addEventListener("click", () => showView("path"));
 
 // Sound: browsers only allow audio after a user gesture, so unlock on the first tap anywhere.
 function renderSoundBtn() {
