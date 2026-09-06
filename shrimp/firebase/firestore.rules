@@ -1,0 +1,32 @@
+rules_version = '2';
+
+// Shrimp Firestore rules.
+// Paste into Firebase console → Firestore Database → Rules → Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Each user's full progress document. Owner only.
+    match /progress/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Public profile used by leaderboards: display name, xp, streak. Anyone signed in can read,
+    // only the owner can write, and only those fields.
+    match /profiles/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['displayName', 'xp', 'streak', 'updatedAt'])
+        && (!('displayName' in request.resource.data)
+            || (request.resource.data.displayName is string
+                && request.resource.data.displayName.size() >= 1
+                && request.resource.data.displayName.size() <= 24))
+        && (!('xp' in request.resource.data) || request.resource.data.xp is int)
+        && (!('streak' in request.resource.data) || request.resource.data.streak is int);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -33,9 +33,56 @@ rather than opening the file directly when testing the Learn screens.
 - **Stripes.** Each belt has four stripes. Finishing units 2, 4, 6 and 8 earns
   one; finishing all nine promotes you to the next belt. The mascot's belt
   ranks up with you.
-- **Hearts, XP, streaks.** Five hearts per lesson. XP and 1-3 stars per lesson
-  based on accuracy. A day streak across visits.
+- **Hearts, XP, stars.** Three hearts per lesson (four questions, so missing
+  three sends you back to retry). XP and 1-3 stars per lesson based on accuracy.
+- **Daily goal.** An XP target per day: Casual 10, Regular 20 (default), or
+  Serious 40. Tap the goal name on the Today card to change it. Hitting it
+  marks the day green on the week strip.
+- **Login streak.** A day counts when you open the app. The streak is the run
+  of consecutive days ending today. The first open of each day gets a streak
+  celebration: the mascot pops in, the number rolls up, and milestones (a
+  week, a month, every week after) add confetti and a bigger fanfare.
+- **Sound.** Short synthesized effects for taps, right and wrong answers,
+  lesson and practice complete, daily goal, stripes, promotion, and streaks.
+  Generated with the Web Audio API in `js/sfx.js`, so there are no audio
+  files. The speaker button in the header mutes them; the choice is saved.
+- **Practice weak spots.** Every wrong answer is remembered per question. A
+  practice session serves up to 8 questions from lessons you've completed,
+  missed ones first. A correct answer clears one miss; no hearts in practice,
+  but XP counts toward the daily goal.
 - **Progress** lives in the browser's `localStorage` under `shrimp_progress_v1`.
+
+## Accounts and cloud sync (Firebase)
+
+The app is local-first: it always works signed out, with progress in the
+browser. With a Firebase project configured, users can sign in by email link
+(or Google/Apple when enabled) and their progress syncs across devices.
+
+One-time setup:
+
+1. Create a project at https://console.firebase.google.com (the free Spark
+   plan is plenty). Analytics can be off.
+2. **Build → Authentication → Get started → Sign-in method**: enable
+   **Email/Password** and, inside it, turn on **Email link (passwordless
+   sign-in)**. Optionally enable Google and Apple too.
+3. **Authentication → Settings → Authorized domains**: add the domain the app
+   is served from (for GitHub Pages, `<user>.github.io`). Sign-in links only
+   return to authorized domains.
+4. **Build → Firestore Database → Create database** in production mode, then
+   open the **Rules** tab, replace the contents with `firebase/firestore.rules`,
+   and **Publish**. Users can only write their own rows, and profiles expose
+   only display name, XP and streak.
+5. **Project settings (gear) → General → Your apps → Add app → Web**. Copy the
+   `apiKey`, `authDomain`, `projectId` and `appId` from the config it shows
+   into `js/config.js`. These values are safe to publish; the rules are what
+   protect the data.
+6. If you enabled Google or Apple, list them in `providers` in `js/config.js`.
+
+How sync works: every local save schedules a debounced push of the whole
+progress document to `progress/{uid}`, plus XP and streak to `profiles/{uid}`
+for leaderboards. At sign-in the cloud copy is merged with the local one:
+stars and misses take the higher value, days and watched videos are unioned,
+and XP takes the higher value (never summed).
 
 ## Files
 
@@ -47,7 +94,11 @@ js/figures.js       position illustration renderer + position data
 js/white.js         white belt units, lessons, questions, video slots
 js/blue.js          blue belt units, lessons, questions, video slots
 js/curriculum.js    belt metadata and stripe thresholds
-js/app.js           progress, path rendering, learn and lesson flow
+js/app.js           progress, path rendering, learn and lesson flow, account screen
+js/sfx.js           synthesized sound effects
+js/config.js        Firebase web config, enabled providers
+js/cloud.js         auth, progress push/pull, merge
+firebase/firestore.rules   Firestore security rules
 tools/curate-videos.mjs   YouTube Data API curation script
 ```
 

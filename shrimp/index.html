@@ -20,9 +20,13 @@
         <div class="stats">
           <div class="stat stat-streak" title="Day streak"><span class="icon" id="icon-flame"></span><span id="stat-streak">0</span></div>
           <div class="stat stat-xp" title="Total XP"><span class="icon" id="icon-star"></span><span id="stat-xp">0</span></div>
+          <button id="sound-btn" class="icon-btn sound-btn" aria-label="Toggle sound"></button>
+          <button id="account-btn" class="icon-btn account-btn hidden" aria-label="Account"></button>
         </div>
       </header>
       <div id="belt-card" class="belt-card"></div>
+      <div id="today-card" class="today-card"></div>
+      <div id="practice-card"></div>
       <div id="path-container" class="path-container"></div>
     </section>
 
@@ -66,6 +70,7 @@
         <div class="eyebrow" id="complete-eyebrow">Lesson complete</div>
         <h2 id="complete-title">Nice work</h2>
         <div id="complete-stripe" class="stripe-banner hidden"></div>
+        <div id="complete-goal" class="goal-banner hidden"></div>
         <div class="result-stats">
           <div class="result-stat"><span class="label">XP earned</span><span id="complete-xp" class="value">+0</span></div>
           <div class="result-stat"><span class="label">Accuracy</span><span id="complete-accuracy" class="value">0%</span></div>
@@ -86,7 +91,40 @@
       </div>
     </section>
 
+    <!-- Account -->
+    <section id="view-account" class="view hidden">
+      <header class="learn-header">
+        <button id="account-back" class="icon-btn" aria-label="Back"></button>
+        <div class="learn-title">
+          <div class="eyebrow">Account</div>
+          <h1 id="account-heading">Save your progress</h1>
+        </div>
+      </header>
+      <div id="account-body" class="learn-body"></div>
+    </section>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <!-- Streak celebration (shown on the first open of each day) -->
+    <div id="streak-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="streak-title">
+      <div class="confetti" id="streak-confetti" aria-hidden="true"></div>
+      <div class="overlay-card">
+        <div id="streak-mascot" class="streak-mascot"></div>
+        <div class="streak-count"><span class="icon" id="streak-flame"></span><span id="streak-number">0</span></div>
+        <h2 id="streak-title">day streak</h2>
+        <p id="streak-msg" class="streak-msg"></p>
+        <div id="streak-week" class="week big"></div>
+        <button id="streak-continue" class="primary-btn">Let's roll</button>
+      </div>
+    </div>
+
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-app-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/cloud.js"></script>
+  <script src="js/sfx.js"></script>
   <script src="js/figures.js"></script>
   <script src="js/brand.js"></script>
   <script src="js/white.js"></script>
