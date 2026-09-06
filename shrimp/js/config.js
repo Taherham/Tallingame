@@ -1,10 +1,14 @@
-// Cloud sync configuration.
-// Both values are safe to publish: the anon key only grants what the database's row-level
-// security allows, which is each signed-in user reading and writing their own rows.
-// Leave them empty and the app runs local-only with the account button hidden.
+// Cloud sync configuration (Firebase).
+// The web config below is safe to publish: it identifies the project, and Firestore security
+// rules (firebase/firestore.rules) decide what a signed-in user can read and write.
+// Leave apiKey empty and the app runs local-only with the account button hidden.
 const CONFIG = Object.assign({
-  supabaseUrl: "",
-  supabaseAnonKey: "",
-  // Social sign-in providers enabled in the Supabase dashboard, e.g. ["google", "apple"].
+  firebase: {
+    apiKey: "",
+    authDomain: "",
+    projectId: "",
+    appId: "",
+  },
+  // Social sign-in providers enabled in the Firebase console, e.g. ["google", "apple"].
   providers: [],
 }, window.SHRIMP_CONFIG || {});

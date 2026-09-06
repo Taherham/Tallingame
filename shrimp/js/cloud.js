@@ -1,15 +1,21 @@
-// Cloud accounts and progress sync (Supabase). Local-first: the app always reads and writes
-// localStorage; when a user is signed in, changes are pushed after a short debounce and the
-// cloud copy is merged in at sign-in so nothing earned on either device is lost.
+// Cloud accounts and progress sync (Firebase Auth + Firestore). Local-first: the app always reads
+// and writes localStorage; when a user is signed in, changes are pushed after a short debounce and
+// the cloud copy is merged in at sign-in so nothing earned on either device is lost.
+//
+// Firestore layout:
+//   progress/{uid}  { data, xp, streak, updatedAt }        owner only
+//   profiles/{uid}  { displayName, xp, streak, updatedAt } public read, owner write (leaderboards)
 
 const Cloud = (() => {
-  let client = null;
+  const EMAIL_KEY = "shrimp_signin_email";
+  let auth = null;
+  let db = null;
   let user = null;
   let pushTimer = null;
   const listeners = [];
   const status = { lastSync: null, error: null, pending: false };
 
-  const isConfigured = () => !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey && window.supabase && window.supabase.createClient);
+  const isConfigured = () => !!(CONFIG.firebase && CONFIG.firebase.apiKey && window.firebase && window.firebase.initializeApp);
   const currentUser = () => user;
   const getStatus = () => ({ ...status });
   const redirectTo = () => location.origin + location.pathname;
@@ -19,53 +25,80 @@ const Cloud = (() => {
 
   function init() {
     if (!isConfigured()) return false;
-    client = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-    });
-    client.auth.onAuthStateChange((event, session) => {
-      const next = session ? session.user : null;
+    if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(CONFIG.firebase);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    let first = true;
+    auth.onAuthStateChanged((u) => {
+      const next = u ? { id: u.uid, email: u.email || null } : null;
       const changed = (next && next.id) !== (user && user.id);
       user = next;
-      if (changed || event === "SIGNED_IN" || event === "SIGNED_OUT") emit(event);
+      if (changed) emit(next ? (first ? "INITIAL" : "SIGNED_IN") : "SIGNED_OUT");
+      first = false;
     });
-    client.auth.getSession().then(({ data }) => {
-      const next = data && data.session ? data.session.user : null;
-      if ((next && next.id) !== (user && user.id)) { user = next; emit("INITIAL"); }
-    }).catch(() => {});
+    completeEmailLink();
     return true;
   }
 
+  // If this page load is the landing of a sign-in email link, finish the sign-in.
+  async function completeEmailLink() {
+    try {
+      if (!auth.isSignInWithEmailLink(location.href)) return;
+      let email = null;
+      try { email = localStorage.getItem(EMAIL_KEY); } catch (e) { /* ignore */ }
+      if (!email) email = window.prompt("Confirm the email you used to sign in");
+      if (!email) return;
+      await auth.signInWithEmailLink(email, location.href);
+      try { localStorage.removeItem(EMAIL_KEY); } catch (e) { /* ignore */ }
+      history.replaceState(null, "", redirectTo());
+    } catch (e) {
+      status.error = e.message;
+      emit("SYNC");
+    }
+  }
+
   async function signInWithEmail(email) {
-    const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo() } });
-    if (error) throw error;
+    await auth.sendSignInLinkToEmail(email, { url: redirectTo(), handleCodeInApp: true });
+    try { localStorage.setItem(EMAIL_KEY, email); } catch (e) { /* ignore */ }
   }
-  async function signInWithProvider(provider) {
-    const { error } = await client.auth.signInWithOAuth({ provider, options: { redirectTo: redirectTo() } });
-    if (error) throw error;
+
+  async function signInWithProvider(name) {
+    let provider;
+    if (name === "google") provider = new firebase.auth.GoogleAuthProvider();
+    else if (name === "apple") { provider = new firebase.auth.OAuthProvider("apple.com"); provider.addScope("email"); provider.addScope("name"); }
+    else throw new Error(`Unknown provider: ${name}`);
+    await auth.signInWithRedirect(provider);
   }
+
   async function signOut() {
     clearTimeout(pushTimer);
-    await client.auth.signOut();
+    await auth.signOut();
     user = null;
     emit("SIGNED_OUT");
   }
 
   async function pull() {
     if (!user) return null;
-    const { data, error } = await client.from("progress").select("data").eq("user_id", user.id).maybeSingle();
-    if (error) throw error;
-    return data ? data.data : null;
+    const snap = await db.collection("progress").doc(user.id).get();
+    return snap.exists ? (snap.data().data || null) : null;
   }
 
   async function push(progress, summary) {
     if (!user) return;
     status.pending = true;
-    const row = { user_id: user.id, data: progress, xp: summary.xp || 0, streak: summary.streak || 0, updated_at: new Date().toISOString() };
-    const { error } = await client.from("progress").upsert(row, { onConflict: "user_id" });
-    status.pending = false;
-    if (error) { status.error = error.message; throw error; }
-    status.error = null;
-    status.lastSync = Date.now();
+    try {
+      const ts = firebase.firestore.FieldValue.serverTimestamp();
+      const xp = summary.xp || 0, streak = summary.streak || 0;
+      await db.collection("progress").doc(user.id).set({ data: progress, xp, streak, updatedAt: ts }, { merge: true });
+      await db.collection("profiles").doc(user.id).set({ xp, streak, updatedAt: ts }, { merge: true });
+      status.error = null;
+      status.lastSync = Date.now();
+    } catch (e) {
+      status.error = e.message;
+      throw e;
+    } finally {
+      status.pending = false;
+    }
   }
 
   // Coalesce rapid saves into one write.
@@ -82,12 +115,13 @@ const Cloud = (() => {
 
   async function getProfile() {
     if (!user) return null;
-    const { data } = await client.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
-    return data || null;
+    const snap = await db.collection("profiles").doc(user.id).get();
+    if (!snap.exists) return null;
+    const d = snap.data();
+    return { display_name: d.displayName || null };
   }
   async function setDisplayName(name) {
-    const { error } = await client.from("profiles").upsert({ id: user.id, display_name: name }, { onConflict: "id" });
-    if (error) throw error;
+    await db.collection("profiles").doc(user.id).set({ displayName: name, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
   }
 
   // Merge two progress documents so nothing earned on either side is lost.
