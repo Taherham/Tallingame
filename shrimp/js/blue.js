@@ -387,7 +387,7 @@ const BLUE_UNITS = [
       "ashi garami positions explained",
       "50 50 guard basics bjj",
       "heel hook defense awareness bjj",
-      "leg lock positions legal ibjjf blue belt",
+      "ashi garami vs 50 50 vs saddle explained",
     ],
     videos: [
       {"id":"H4yzzjIghMc","title":"Opponent Posts Leg Cross Ashi Garami by John Danaher","channel":"BJJ Fanatics","duration":54},
@@ -398,7 +398,7 @@ const BLUE_UNITS = [
     keyIdeas: [
       "Control the hips and knee line first. The submission is the last thing, not the first.",
       "Hide your heel. If they can't reach the heel, they can't heel hook.",
-      "Know which entanglements are legal for you before you enter them in competition.",
+      "Ask your coach which leg attacks your gym allows in training, and start there.",
     ],
     lessons: [
       {
@@ -407,7 +407,7 @@ const BLUE_UNITS = [
         questions: [
           { type: "mc", prompt: "Ashi garami means:", choices: ["Leg entanglement", "Ankle lock", "Heel hook", "Standing throw"], answer: 0 },
           { type: "mc", prompt: "Single leg X, outside ashi, the saddle, and 50/50 are all:", choices: ["Leg entanglement positions that control one leg", "Sweeps", "Chokes", "Guard passes"], answer: 0 },
-          { type: "mc", prompt: "In IBJJF gi competition, which entanglements are risky or illegal for blue belts?", choices: ["Anything that reaps the knee, where your leg crosses their knee line inward", "Single leg X with your outside foot on their hip", "The straight ankle lock", "None"], answer: 0 },
+          { type: "mc", prompt: "\"Knee reaping\" refers to:", choices: ["Your leg crossing over their knee line, twisting the joint inward", "A type of sweep", "Grabbing inside the pant leg", "A guard pass"], answer: 0 },
           { type: "mc", prompt: "\"Control before submission\" in leg locks means:", choices: ["Pin their hips and knee line with your legs before hunting the finish", "Grab the foot fast", "Spin", "Stand up"], answer: 0 },
         ],
       },
@@ -416,7 +416,7 @@ const BLUE_UNITS = [
         title: "50/50",
         questions: [
           { type: "mc", prompt: "50/50 is:", choices: ["Both players' legs entangled symmetrically, so each can attack the other", "Only one player can attack", "A pin", "A takedown"], answer: 0 },
-          { type: "mc", prompt: "In gi 50/50, the main legal attack for blue belts is:", choices: ["The straight ankle lock", "Heel hook", "Kneebar", "Toe hold"], answer: 0 },
+          { type: "mc", prompt: "In 50/50, the straight ankle lock is the go-to attack because:", choices: ["Both players can reach it from the same entanglement", "It's the only submission that exists", "It needs no grips", "It only works standing"], answer: 0 },
           { type: "mc", prompt: "A 50/50 danger:", choices: ["Stalling and getting your own ankle attacked. Keep your heel hidden and stay active.", "Nothing", "A choke", "Losing points"], answer: 0 },
           { type: "mc", prompt: "To come up on top from 50/50:", choices: ["Sit up, control their far leg and drive forward", "Lie back", "Cross your ankles", "Tap"], answer: 0 },
         ],
@@ -428,7 +428,7 @@ const BLUE_UNITS = [
           { type: "mc", prompt: "A heel hook:", choices: ["Rotates the heel to twist the knee. Damage can happen before pain.", "Bends the toes", "Hyperextends the ankle", "Cranks the neck"], answer: 0 },
           { type: "mc", prompt: "Your heel gets exposed in training. You:", choices: ["Turn your knee to relieve the rotation and hide the heel. Tap early if it's on.", "Kick free with force", "Ignore it", "Roll away fast"], answer: 0 },
           { type: "mc", prompt: "Why does keeping your knee pointing the same way as your foot help?", choices: ["Rotation is what injures; aligning the two removes it", "It's faster", "It scores", "No reason"], answer: 0 },
-          { type: "mc", prompt: "When can you heel hook in IBJJF competition?", choices: ["Only at brown and black belt, and only in no-gi", "At blue belt", "Always", "Only at white belt"], answer: 0 },
+          { type: "mc", prompt: "Because heel hooks can injure a joint before you feel pain, most gyms:", choices: ["Restrict them to controlled drilling or higher belts — ask your coach", "Ban every foot lock forever", "Allow them from day one at full speed", "Only teach them in seminars"], answer: 0 },
         ],
       },
     ],
@@ -436,12 +436,12 @@ const BLUE_UNITS = [
   {
     id: "b9",
     title: "Standing & Strategy",
-    subtitle: "Ties, throws, points, late defense",
+    subtitle: "Ties, throws, and late defense",
     videoQueries: [
       "collar tie snapdown front headlock bjj",
       "ankle pick for bjj tutorial",
       "osoto gari ouchi gari for bjj",
-      "ibjjf points system explained advantages",
+      "bjj framing and creating space concepts",
     ],
     videos: [
       {"id":"LHIMtIYrNXo","title":"COLLAR TIE: what (not) to do 🥋❗","channel":"Jordan Teaches Jiujitsu","duration":59},
@@ -451,7 +451,7 @@ const BLUE_UNITS = [
     ],
     keyIdeas: [
       "A snapdown turns their posture into your front headlock. Pull the head, step back.",
-      "Points tell a story: pass 3, sweep 2, mount 4, back 4. Know the story you're telling.",
+      "Rank position value in your head — control beats scrambling, and finishes come from control.",
       "Late defense is about posture and time. Stack, posture, walk, then escape.",
     ],
     lessons: [
@@ -477,10 +477,10 @@ const BLUE_UNITS = [
       },
       {
         id: "b9c",
-        title: "Points & late defense",
+        title: "Late defense",
         questions: [
-          { type: "mc", prompt: "IBJJF points for a guard pass, a sweep, and mount:", choices: ["3, 2, 4", "2, 2, 2", "4, 3, 2", "1, 1, 1"], answer: 0 },
-          { type: "mc", prompt: "An \"advantage\" is:", choices: ["A near-score used to break ties, like an almost-completed sweep", "A penalty", "Two points", "A warning"], answer: 0 },
+          { type: "mc", prompt: "The best time to escape a bad position is:", choices: ["Early, before they lock in control — waiting only makes it harder", "After they submit you", "Never, always wait it out", "Only when you're tired"], answer: 0 },
+          { type: "mc", prompt: "\"Framing\" means:", choices: ["Using your bones, like forearms and shins, to create space against their weight", "Grabbing the gi frame", "Standing near the mat edge", "A type of choke"], answer: 0 },
           { type: "mc", prompt: "Late armbar defense:", choices: ["Stack or hitchhiker escape, keeping your elbow bent and hands gripped until you can", "Extend your arm", "Roll onto your stomach", "Grab their belt"], answer: 0 },
           { type: "mc", prompt: "Late triangle defense:", choices: ["Posture up, bring your trapped-side hand to your own ear to relieve pressure, then stack and walk around", "Pull straight back", "Push their hips", "Lie down"], answer: 0 },
         ],

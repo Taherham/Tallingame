@@ -554,6 +554,7 @@ function renderQuestion() {
   els.feedbackBanner.classList.add("hidden");
   els.actionBtn.textContent = "Check";
   els.actionBtn.disabled = true;
+  els.actionBtn.classList.toggle("hidden", q.type === "mc" || q.type === "position");
   session.answered = false; session.selected = null; session.seqAnswer = [];
 
   const c = els.questionContainer;
@@ -584,7 +585,7 @@ function renderQuestion() {
         session.selected = i;
         list.querySelectorAll(".choice-btn").forEach((x) => x.classList.remove("selected"));
         b.classList.add("selected");
-        els.actionBtn.disabled = false;
+        checkAnswer();
       });
       list.appendChild(b);
     });
@@ -659,6 +660,7 @@ function checkAnswer() {
     ? ["Nice.", "Oss.", "That's it.", "Clean."][Math.floor(Math.random() * 4)]
     : q.type === "sequence" ? "Not quite. The steps marked red are out of place." : "Not quite. The right answer is in green.";
   renderHearts();
+  els.actionBtn.classList.remove("hidden");
   els.actionBtn.disabled = false;
   const last = session.index === session.questions.length - 1;
   els.actionBtn.textContent = session.mode === "lesson" && session.hearts <= 0 ? "Continue" : last ? "Finish" : "Continue";

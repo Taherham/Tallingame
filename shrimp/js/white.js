@@ -10,19 +10,18 @@ const WHITE_UNITS = [
     videoQueries: [
       "bjj etiquette for beginners first class",
       "bjj positional hierarchy explained",
-      "what is legal at white belt ibjjf rules",
+      "bjj belt ranking system explained",
       "how to tap in bjj beginners",
     ],
     videos: [
       {"id":"bYnlWdXvvH4","title":"Top 10 Questions For Your First Brazilian Jiu-Jitsu Class","channel":"GracieBreakdown","duration":268},
       {"id":"81bjvwIMAUM","title":"Positional Hierarchy by Lachlan Giles","channel":"BJJ Fanatics","duration":99},
-      {"id":"OVNThMHxY4k","title":"The Positional Hierarchy","channel":"Absolute MMA St Kilda - Melbourne","duration":275},
-      {"id":"TgaazaGA_-0","title":"Back to the Basics: know the POINT SYSTEM for Brazilian JiuJitsu Tournaments","channel":"Matt Arroyo Jiu Jitsu ","duration":61}
+      {"id":"OVNThMHxY4k","title":"The Positional Hierarchy","channel":"Absolute MMA St Kilda - Melbourne","duration":275}
     ],
     keyIdeas: [
       "Tap early, tap clearly. A tap is how you stay healthy enough to train tomorrow.",
       "Position before submission: get somewhere stable first, then attack.",
-      "Know what's legal at your belt before you try it on a partner.",
+      "New moves need a coach's eyes on them first — ask before you try something you saw online.",
     ],
     lessons: [
       {
@@ -47,12 +46,12 @@ const WHITE_UNITS = [
       },
       {
         id: "w1c",
-        title: "White belt rules",
+        title: "The belt system",
         questions: [
-          { type: "mc", prompt: "Under IBJJF rules, which leg lock is legal for adult white belts?", choices: ["Straight ankle lock", "Heel hook", "Toe hold", "Kneebar"], answer: 0 },
-          { type: "mc", prompt: "Which of these is illegal at every belt in IBJJF competition?", choices: ["Slamming your opponent", "Cross collar choke", "Pulling guard", "Straight ankle lock"], answer: 0 },
-          { type: "mc", prompt: "\"Knee reaping\" refers to:", choices: ["Your leg crossing over their knee line so the knee twists inward", "A type of sweep", "Grabbing inside the pant leg", "A guard pass"], answer: 0 },
-          { type: "mc", prompt: "How many points does a takedown score under IBJJF rules?", choices: ["2", "3", "4", "1"], answer: 0 },
+          { type: "mc", prompt: "How many stripes does a belt earn before the next belt?", choices: ["Four", "Two", "Ten", "None"], answer: 0 },
+          { type: "mc", prompt: "What actually earns a promotion in jiu-jitsu?", choices: ["Time on the mat, steady improvement, and your coach's judgment", "Winning a tournament", "Memorizing terms", "Showing up once"], answer: 0 },
+          { type: "mc", prompt: "The adult belt order after white is:", choices: ["Blue, purple, brown, black", "Blue, brown, purple, black", "Green, blue, black", "Yellow, orange, blue"], answer: 0 },
+          { type: "mc", prompt: "Why do belt promotions usually take years, not months?", choices: ["Live sparring against a resisting partner takes real time to develop", "Belts are given for money", "It's random", "Coaches forget to promote people"], answer: 0 },
         ],
       },
     ],
@@ -140,7 +139,7 @@ const WHITE_UNITS = [
           { type: "position", position: "side_control", prompt: "Which position is this?", choices: ["Side control", "Mount", "Half guard", "Turtle"], answer: 0 },
           { type: "position", position: "knee_on_belly", prompt: "Which position is this?", choices: ["Knee on belly", "Mount", "North-south", "Back control"], answer: 0 },
           { type: "position", position: "north_south", prompt: "Which position is this?", choices: ["North-south", "Side control", "Turtle", "Closed guard"], answer: 0 },
-          { type: "mc", prompt: "Which of these top positions scores 4 points under IBJJF rules?", choices: ["Mount", "Side control", "Knee on belly", "Half guard top"], answer: 0 },
+          { type: "mc", prompt: "Which of these top positions gives you the most control and attacking options?", choices: ["Mount", "Side control", "Knee on belly", "Half guard top"], answer: 0 },
         ],
       },
       {
@@ -443,7 +442,7 @@ const WHITE_UNITS = [
       "bjj straight ankle lock tutorial beginners",
       "how to defend straight ankle lock bjj",
       "bjj leg lock safety knee reaping explained",
-      "ibjjf legal leg locks by belt",
+      "kneebar toe hold heel hook explained",
     ],
     videos: [
       {"id":"AZgvIH_bK10","title":"How to Do the Straight Ankle Lock in BJJ (Step by Step) 🦶🏽","channel":"Grapple Lab BJJ","duration":60},
@@ -464,7 +463,7 @@ const WHITE_UNITS = [
           { type: "sequence", prompt: "Order the straight ankle lock:", steps: ["Trap their leg between yours and control the foot", "Wrap the blade of your wrist under their Achilles", "Grip your hands and pull the foot to your chest", "Extend your hips and arch back to finish"] },
           { type: "mc", prompt: "The straight ankle lock attacks:", choices: ["The ankle and Achilles, by hyperextension and pressure", "The knee", "The hip", "The toes"], answer: 0 },
           { type: "mc", prompt: "The blade of your wrist goes:", choices: ["Under the Achilles tendon, just above the heel", "On their toes", "Behind their knee", "On their shin"], answer: 0 },
-          { type: "mc", prompt: "To stay IBJJF-legal, your outside foot should be:", choices: ["On their hip on the same side as their leg, never crossing inward over the knee", "Across their belly", "Behind their back", "Anywhere"], answer: 0 },
+          { type: "mc", prompt: "For a clean, safe straight ankle lock, your outside foot should be:", choices: ["On their hip on the same side as their leg, never crossing inward over the knee", "Across their belly", "Behind their back", "Anywhere"], answer: 0 },
         ],
       },
       {
@@ -479,12 +478,12 @@ const WHITE_UNITS = [
       },
       {
         id: "w9c",
-        title: "Legal vs illegal",
+        title: "Other leg locks",
         questions: [
-          { type: "mc", prompt: "Heel hooks in IBJJF gi competition are:", choices: ["Illegal at every belt", "Legal at white belt", "Legal at blue belt", "Always legal"], answer: 0 },
-          { type: "mc", prompt: "Knee reaping in IBJJF competition:", choices: ["Is illegal until brown belt, and only in no-gi", "Is a legal sweep", "Is legal at white belt", "Is a choke"], answer: 0 },
-          { type: "mc", prompt: "Kneebars and toe holds become legal at:", choices: ["Brown belt", "White belt", "Blue belt", "Never"], answer: 0 },
-          { type: "mc", prompt: "Outside competition, whether you can train heel hooks depends on:", choices: ["Your gym's rules. Always ask your coach.", "Your belt only", "Nothing", "The mat color"], answer: 0 },
+          { type: "mc", prompt: "A kneebar attacks:", choices: ["The knee joint, by hyperextension", "The ankle", "The hip", "The neck"], answer: 0 },
+          { type: "mc", prompt: "A toe hold attacks:", choices: ["The ankle and foot, by rotation", "The knee", "The shoulder", "The wrist"], answer: 0 },
+          { type: "mc", prompt: "A heel hook attacks:", choices: ["The knee, by rotating the heel", "The toes", "The elbow", "The hip"], answer: 0 },
+          { type: "mc", prompt: "Because leg locks can injure a joint before you feel pain, most gyms:", choices: ["Ask you to check with a coach before drilling them live", "Ban every leg attack forever", "Let anyone do anything at full speed", "Only allow them in competition"], answer: 0 },
         ],
       },
     ],
