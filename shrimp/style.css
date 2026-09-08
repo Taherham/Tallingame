@@ -764,6 +764,9 @@ button:focus-visible, .lesson-node:focus-visible, .choice-btn:focus-visible {
   margin-top: 6px;
   flex-shrink: 0;
 }
+.key-ideas li.has-fig::before { content: none; }
+.key-idea-fig { width: 64px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--surface); }
+.key-idea-fig svg { display: block; }
 
 .sticky-footer {
   position: sticky;
@@ -800,6 +803,7 @@ button:focus-visible, .lesson-node:focus-visible, .choice-btn:focus-visible {
   padding: 12px 20px 0;
 }
 .question-prompt { font-family: var(--display); font-size: 24px; font-weight: 600; line-height: 1.2; text-wrap: balance; }
+.teach-body { color: var(--text-2); font-weight: 600; font-size: 16px; line-height: 1.5; margin: 0; }
 
 .choice-list { display: flex; flex-direction: column; gap: 10px; }
 .choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }

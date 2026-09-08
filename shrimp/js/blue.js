@@ -28,8 +28,8 @@ const BLUE_UNITS = [
         title: "De la Riva",
         questions: [
           { type: "mc", prompt: "De la Riva guard is defined by:", choices: ["Your outside leg hooking around the outside of their lead leg, with grips on their ankle and sleeve", "Both feet on their hips", "Legs locked around their waist", "Hooks inside both thighs"], answer: 0 },
-          { type: "mc", prompt: "What does the De la Riva hook mainly do?", choices: ["Off-balances them by pulling their knee out and forward", "Chokes", "Locks the ankle", "Nothing"], answer: 0 },
-          { type: "mc", prompt: "The biggest danger in De la Riva:", choices: ["Getting your hooking leg smashed and knee-cut passed. Keep the hook tight and your other foot on their hip or knee.", "Getting choked", "Nothing", "Being lifted"], answer: 0 },
+          { type: "mc", prompt: "What does the De la Riva hook mainly do?", choices: ["Off-balances them by pulling their knee out and forward", "Chokes them from a strange angle", "Locks their ankle in place", "It doesn't do much at all"], answer: 0 },
+          { type: "mc", prompt: "The biggest danger in De la Riva:", choices: ["Getting your hooking leg smashed and knee-cut passed. Keep the hook tight and your other foot on their hip or knee.", "Getting choked from that far away", "There's no real danger here", "Being picked up and slammed"], answer: 0 },
           { type: "sequence", prompt: "Order the basic De la Riva sweep:", steps: ["Hook the outside of their lead leg and grab that ankle", "Put your other foot on their far knee or hip", "Pull the ankle as you push the knee", "Come up on top as they fall"] },
         ],
       },
@@ -40,7 +40,7 @@ const BLUE_UNITS = [
           { type: "mc", prompt: "Spider guard is:", choices: ["Feet on their biceps, gripping both sleeves", "Feet on their hips", "Feet hooked around their legs", "Lying flat with no grips"], answer: 0 },
           { type: "mc", prompt: "Lasso guard wraps your leg:", choices: ["Around their arm, your foot ending inside behind their arm", "Around their neck", "Around their leg", "Behind your own back"], answer: 0 },
           { type: "mc", prompt: "Spider guard is strong for:", choices: ["Controlling posture and setting up triangles, omoplatas and sweeps", "Standing up", "Leg locks", "Nothing in particular"], answer: 0 },
-          { type: "mc", prompt: "The main weakness of spider and lasso if you lose the sleeve grips:", choices: ["The guard collapses and they pass easily", "No weakness", "It becomes closed guard", "They fall over"], answer: 0 },
+          { type: "mc", prompt: "The main weakness of spider and lasso if you lose the sleeve grips:", choices: ["The guard collapses and they pass easily", "There's no real weakness to it", "It just becomes closed guard instead", "They fall over on their own"], answer: 0 },
         ],
       },
       {
@@ -49,7 +49,7 @@ const BLUE_UNITS = [
         questions: [
           { type: "mc", prompt: "Collar-sleeve guard controls:", choices: ["One collar and the opposite sleeve, with a foot on the bicep or hip", "Both sleeves", "The belt and pants", "Both collars"], answer: 0 },
           { type: "mc", prompt: "A common attack from collar-sleeve:", choices: ["Triangle or omoplata when they post the gripped arm", "Rear naked choke", "Heel hook", "Kneebar"], answer: 0 },
-          { type: "mc", prompt: "Why is collar-sleeve so popular at blue belt?", choices: ["It's easy to get from closed guard and links to many attacks", "It's illegal later", "It scores four points", "It needs no grips"], answer: 0 },
+          { type: "mc", prompt: "Why is collar-sleeve so popular at blue belt?", choices: ["It's easy to get from closed guard and links to many attacks", "It stops working past blue belt", "It scores extra points on its own", "It needs no grips to hold at all"], answer: 0 },
           { type: "sequence", prompt: "Order the omoplata from collar-sleeve:", steps: ["Push their arm across and down with the sleeve grip and foot on the bicep", "Swing your leg over their shoulder", "Sit up and turn toward their legs, trapping the arm", "Control their hips and drive them face down"] },
         ],
       },
@@ -82,7 +82,7 @@ const BLUE_UNITS = [
         title: "Butterfly guard",
         questions: [
           { type: "mc", prompt: "In butterfly guard, your feet:", choices: ["Hook inside their thighs so you can lift them", "Lock behind their back", "Rest on their hips", "Stay on the mat"], answer: 0 },
-          { type: "mc", prompt: "The butterfly sweep needs:", choices: ["An underhook (or overhook) and a lift with the hook as you fall to your shoulder", "Both collar grips", "Standing", "Their belt"], answer: 0 },
+          { type: "mc", prompt: "The butterfly sweep needs:", choices: ["An underhook (or overhook) and a lift with the hook as you fall to your shoulder", "Both hands on their collar", "You standing up first", "A grip on their belt"], answer: 0 },
           { type: "sequence", prompt: "Order the butterfly sweep:", steps: ["Get an underhook and control their other arm", "Pull them in close, chest to chest", "Fall to the side away from your underhook while lifting with that side's hook", "Follow through into mount or side control"] },
           { type: "mc", prompt: "Butterfly guard is hardest to pass when you:", choices: ["Sit up and stay chest to chest", "Lie flat", "Cross your feet", "Let go of your grips"], answer: 0 },
         ],
@@ -102,7 +102,7 @@ const BLUE_UNITS = [
         title: "Seated guard concepts",
         questions: [
           { type: "mc", prompt: "In seated open guard, keep your:", choices: ["Hands and feet as barriers between you and them", "Hands on the mat behind you", "Legs flat", "Head down"], answer: 0 },
-          { type: "mc", prompt: "Grip fighting from seated guard aims to:", choices: ["Control their sleeve, collar or ankle before they control your legs", "Rest", "Score", "Stand up"], answer: 0 },
+          { type: "mc", prompt: "Grip fighting from seated guard aims to:", choices: ["Control their sleeve, collar or ankle before they control your legs", "Give both of you a rest", "Rack up more score", "Get you back to standing"], answer: 0 },
           { type: "mc", prompt: "Why follow them with your hips as they circle?", choices: ["A passer circles for an angle; keeping your feet pointed at them shuts it down", "It's a rule", "To tire them out", "It looks good"], answer: 0 },
           { type: "mc", prompt: "When the opponent stands up to pass, a good option is:", choices: ["Enter X-guard or single leg X, or stand up yourself", "Lie flat and wait", "Cross your ankles", "Turn away"], answer: 0 },
         ],
@@ -136,7 +136,7 @@ const BLUE_UNITS = [
         title: "Underhook & knee shield",
         questions: [
           { type: "mc", prompt: "The knee shield is:", choices: ["Your top knee across their chest or hip, keeping distance", "Your knee on the mat", "Their knee on you", "A guard pass"], answer: 0 },
-          { type: "mc", prompt: "The underhook from bottom half guard lets you:", choices: ["Come up to your knees (the dogfight) or take the back", "Lie flat", "Choke", "Nothing"], answer: 0 },
+          { type: "mc", prompt: "The underhook from bottom half guard lets you:", choices: ["Come up to your knees (the dogfight) or take the back", "Lie flatter than before", "Set up a choke on them", "It doesn't really help"], answer: 0 },
           { type: "mc", prompt: "They get the underhook and cross-face on you in half guard. That means:", choices: ["You're being flattened. Fight to recover the underhook, or frame and shrimp.", "You're winning", "Attack a heel hook", "Give up"], answer: 0 },
           { type: "sequence", prompt: "Order the underhook half guard to dogfight:", steps: ["Turn onto your side with the knee shield in", "Win the underhook and get your head under their chin", "Come up to your knees keeping the underhook", "Take the back or drive them over to sweep"] },
         ],
@@ -157,7 +157,7 @@ const BLUE_UNITS = [
         questions: [
           { type: "mc", prompt: "Deep half is usually entered when:", choices: ["They stand or step up to pass and you dive under their hips", "They're flat on you", "You're in mount", "They're in turtle"], answer: 0 },
           { type: "mc", prompt: "The classic deep half sweep (the waiter sweep):", choices: ["Elevates their leg with your legs and rolls them over your body", "Chokes", "Kneebars", "Stands up"], answer: 0 },
-          { type: "mc", prompt: "The danger in deep half:", choices: ["Getting your back taken or your neck attacked if you sit up wrong", "Nothing", "Losing points", "Cramping"], answer: 0 },
+          { type: "mc", prompt: "The danger in deep half:", choices: ["Getting your back taken or your neck attacked if you sit up wrong", "There's really no danger there", "Losing points on the scoreboard", "Your legs cramping up"], answer: 0 },
           { type: "mc", prompt: "Where should your head be in deep half?", choices: ["Tucked under and behind their leg, hidden from their arms", "Up, looking at them", "Between their legs", "On the mat behind you"], answer: 0 },
         ],
       },
@@ -200,7 +200,7 @@ const BLUE_UNITS = [
         title: "Hip movement & leg pummeling",
         questions: [
           { type: "mc", prompt: "Leg pummeling means:", choices: ["Re-inserting your knee or shin between you and the passer as they clear it", "Kicking", "Locking your ankles", "Standing up"], answer: 0 },
-          { type: "mc", prompt: "The hip heist or shrimp during retention serves to:", choices: ["Re-square your hips to face them after they get an angle", "Attack", "Rest", "Score"], answer: 0 },
+          { type: "mc", prompt: "The hip heist or shrimp during retention serves to:", choices: ["Re-square your hips to face them after they get an angle", "Launch a fresh attack on them", "Give your hips a rest", "Rack up an easy score"], answer: 0 },
           { type: "mc", prompt: "They're halfway through a knee slice. A common retention:", choices: ["Underhook their passing leg and pummel your shin back in, or frame and shrimp away", "Turn away", "Tap", "Accept side control"], answer: 0 },
           { type: "sequence", prompt: "Order retention against the toreando:", steps: ["They grab your legs and step around", "Turn your hips to face them and frame on the near hip", "Swing your legs through to re-insert a knee", "Establish a new guard"] },
         ],
@@ -212,7 +212,7 @@ const BLUE_UNITS = [
           { type: "mc", prompt: "Inverting (going upside down onto your shoulders) is used to:", choices: ["Bring your legs back between you and the passer after they clear your hips", "Attack the arm", "Stand up", "Escape mount"], answer: 0 },
           { type: "mc", prompt: "A granby roll is:", choices: ["A shoulder roll across your upper back to spin back to face them", "A leg lock", "A takedown", "A choke"], answer: 0 },
           { type: "mc", prompt: "Inversion is safer when you:", choices: ["Tuck your chin and roll across your shoulders, not your neck", "Roll over your head", "Keep your legs straight", "Hold your breath"], answer: 0 },
-          { type: "mc", prompt: "Inverting exposes:", choices: ["Your back, and your legs to leg locks if you're slow", "Nothing", "Only your arms", "Your collar"], answer: 0 },
+          { type: "mc", prompt: "Inverting exposes:", choices: ["Your back, and your legs to leg locks if you're slow", "Nothing, it's completely safe", "Only your arms, nothing else", "Just your collar, oddly enough"], answer: 0 },
         ],
       },
     ],
@@ -299,7 +299,7 @@ const BLUE_UNITS = [
         questions: [
           { type: "mc", prompt: "They pull their arm out of your triangle. You:", choices: ["Switch to an armbar on the freed arm", "Give up", "Reset closed guard", "Stand up"], answer: 0 },
           { type: "mc", prompt: "They posture straight up against your armbar. You:", choices: ["Swing to an omoplata or sweep", "Pull harder", "Let go", "Tap"], answer: 0 },
-          { type: "mc", prompt: "Triangle, armbar and omoplata chain together because they share:", choices: ["The same shoulder-line control and hip angle, so each defense feeds the next", "Nothing", "Only the grips", "Only the finish"], answer: 0 },
+          { type: "mc", prompt: "Triangle, armbar and omoplata chain together because they share:", choices: ["The same shoulder-line control and hip angle, so each defense feeds the next", "Nothing, they're unrelated moves", "Only the grips, nothing else", "Only the finishing motion"], answer: 0 },
           { type: "sequence", prompt: "Order the armbar-to-triangle switch:", steps: ["Attack the armbar from guard", "They pull their elbow back and start to stack", "Shoot your leg over the shoulder of the freed arm", "Lock the triangle and cut the angle"] },
         ],
       },
@@ -319,7 +319,7 @@ const BLUE_UNITS = [
         questions: [
           { type: "sequence", prompt: "Order the arm drag from seated guard:", steps: ["Grip their wrist with your same-side hand", "Reach across and grip above their elbow with the other hand", "Pull the arm across your body as you move your hips out", "Come up behind them and take the back"] },
           { type: "mc", prompt: "The arm drag works best when they:", choices: ["Reach or grip at you, so their arm is extended", "Stay far away", "Sit back", "Lie flat"], answer: 0 },
-          { type: "mc", prompt: "After the drag, your first target:", choices: ["Chest to their back and a seatbelt grip, then hooks", "The armbar", "Their collar", "Their ankles"], answer: 0 },
+          { type: "mc", prompt: "After the drag, your first target:", choices: ["Chest to their back and a seatbelt grip, then hooks", "An immediate armbar attempt", "Their collar from the front", "Both of their ankles"], answer: 0 },
           { type: "mc", prompt: "An arm drag is useful from:", choices: ["Standing, seated guard, and butterfly", "Mount only", "Side control only", "Never"], answer: 0 },
         ],
       },
@@ -373,7 +373,7 @@ const BLUE_UNITS = [
         questions: [
           { type: "mc", prompt: "The chair sit means:", choices: ["Sitting back with one hook in and using it to pull them onto you", "Sitting on their chest", "Kneeling", "Standing"], answer: 0 },
           { type: "mc", prompt: "You have one hook and they roll toward it. You:", choices: ["Follow and put in the second hook", "Let them go", "Grab the collar", "Stand up"], answer: 0 },
-          { type: "mc", prompt: "Body triangle versus hooks:", choices: ["Body triangle is harder to escape and keeps you connected; hooks are faster to set", "No difference", "Hooks are illegal", "Body triangle is illegal"], answer: 0 },
+          { type: "mc", prompt: "Body triangle versus hooks:", choices: ["Body triangle is harder to escape and keeps you connected; hooks are faster to set", "There's no real difference between them", "Hooks only work in the gi", "Body triangles only work standing"], answer: 0 },
           { type: "mc", prompt: "They're escaping the back toward the side of your under arm. You:", choices: ["Follow with your hips and re-establish the top hook, or go to mount", "Let go", "Reach for an ankle", "Cross your feet"], answer: 0 },
         ],
       },

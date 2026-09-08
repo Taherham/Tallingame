@@ -81,17 +81,21 @@ const POSITIONS = {
   },
   knee_on_belly: {
     name: "Knee on belly",
-    caption: "Top player drives one knee into the partner's belly, other foot posted wide.",
+    caption: "Top player drives one knee into the partner's belly, other leg posted out straight for balance.",
     partner: {
       head: [52, 124], facing: [0, -1], torso: [[72, 124], [172, 124]],
       arms: { near: [[84, 120], [104, 100], [128, 106]] },
       legs: { near: [[172, 124], [216, 114], [268, 132]], far: [[172, 126], [214, 120], [264, 134]] },
     },
     you: {
-      head: [150, 22], facing: [-1, 0], torso: [[150, 46], [150, 92]],
-      arms: { near: [[146, 50], [124, 70], [100, 104]], far: [[156, 50], [170, 74], [172, 106]] },
-      legs: { near: [[146, 96], [128, 110], [170, 120]], far: [[154, 96], [196, 104], [224, 134]] },
+      head: [134, 26], facing: [-1, 0.3], torso: [[140, 50], [148, 92]],
+      arms: { near: [[136, 54], [112, 76], [88, 104]], far: [[150, 52], [168, 66], [186, 78]] },
+      legs: { near: [[148, 92], [146, 114], [130, 130]], far: [[150, 88], [196, 108], [248, 128]] },
     },
+    order: [
+      ["you", "far"], ["partner", "far"], ["partner", "body"], ["partner", "near"],
+      ["partner", "head"], ["you", "body"], ["you", "near"], ["you", "head"],
+    ],
   },
   back_control: {
     name: "Back control",

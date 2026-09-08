@@ -471,7 +471,11 @@ function renderLearnBody() {
       </div>`).join("") + `</div>`;
   }
 
-  html += `<div class="key-ideas"><h2>Key ideas</h2><ul>${unit.keyIdeas.map((k) => `<li>${k}</li>`).join("")}</ul></div>`;
+  html += `<div class="key-ideas"><h2>Key ideas</h2><ul>${unit.keyIdeas.map((k) => {
+    const text = typeof k === "string" ? k : k.text;
+    const fig = typeof k === "object" && k.figure ? `<div class="key-idea-fig">${Figures.render(k.figure)}</div>` : "";
+    return `<li class="${fig ? "has-fig" : ""}">${fig}<span>${text}</span></li>`;
+  }).join("")}</ul></div>`;
   els.learnBody.innerHTML = html;
 
   els.learnBody.querySelectorAll(".video-card[data-video]").forEach((card) => {
@@ -512,6 +516,21 @@ function prepareQuestions(items) {
   });
 }
 
+// A lesson teaches what it's about to quiz: any written intro the lesson defines,
+// plus an auto flashcard for every position it quizzes (name, illustration, caption).
+function buildTeachCards(lesson) {
+  const cards = (lesson.teach || []).map((t) => ({ eyebrow: "Learn", title: t.title, body: t.body }));
+  const seen = new Set();
+  lesson.questions.forEach((q) => {
+    if (q.type === "position" && !seen.has(q.position)) {
+      seen.add(q.position);
+      const p = Figures.POSITIONS[q.position];
+      if (p) cards.push({ eyebrow: "Learn the position", title: p.name, body: p.caption, position: q.position });
+    }
+  });
+  return cards;
+}
+
 function startLesson(lessonId) {
   const f = FLAT.find((x) => x.lesson.id === lessonId);
   if (!f) return;
@@ -521,9 +540,10 @@ function startLesson(lessonId) {
     index: 0, hearts: START_HEARTS, mistakes: 0, correct: 0,
     answered: false, selected: null, seqAnswer: [],
     stripesBefore: beltStripes(f.belt), beltCompleteBefore: isBeltComplete(f.belt),
+    teachCards: buildTeachCards(f.lesson), teachIndex: 0,
   };
   showView("lesson");
-  renderQuestion();
+  if (session.teachCards.length) renderTeach(); else renderQuestion();
 }
 
 function startPractice() {
@@ -534,9 +554,37 @@ function startPractice() {
     questions: prepareQuestions(items),
     index: 0, hearts: START_HEARTS, mistakes: 0, correct: 0,
     answered: false, selected: null, seqAnswer: [],
+    teachCards: [], teachIndex: 0,
   };
   showView("lesson");
   renderQuestion();
+}
+
+function renderTeach() {
+  const t = session.teachCards[session.teachIndex];
+  els.lessonProgress.style.width = "0%";
+  renderHearts();
+  els.feedbackBanner.classList.add("hidden");
+  els.actionBtn.classList.remove("hidden");
+  els.actionBtn.disabled = false;
+  const last = session.teachIndex === session.teachCards.length - 1;
+  els.actionBtn.textContent = last ? "Start" : "Next";
+
+  const c = els.questionContainer;
+  c.innerHTML = "";
+  c.insertAdjacentHTML("beforeend", `<div class="eyebrow">${t.eyebrow}</div>`);
+  c.insertAdjacentHTML("beforeend", `<div class="question-prompt">${t.title}</div>`);
+  if (t.position) {
+    c.insertAdjacentHTML("beforeend", `<div class="illustration-card">${Figures.render(t.position)}
+      <div class="legend"><span><i style="background:#EF6A4D"></i>You</span><span><i style="background:#1B2A3A"></i>Partner</span></div></div>`);
+  }
+  if (t.body) c.insertAdjacentHTML("beforeend", `<p class="teach-body">${t.body}</p>`);
+}
+
+function advanceTeach() {
+  session.teachIndex++;
+  if (session.teachIndex < session.teachCards.length) renderTeach();
+  else renderQuestion();
 }
 
 function renderHearts() {
@@ -782,7 +830,10 @@ const fav = document.createElement("link");
 fav.rel = "icon"; fav.type = "image/svg+xml"; fav.href = Brand.faviconHref();
 document.head.appendChild(fav);
 
-els.actionBtn.addEventListener("click", () => (session.answered ? advance() : checkAnswer()));
+els.actionBtn.addEventListener("click", () => {
+  if (session.teachIndex < session.teachCards.length) advanceTeach();
+  else session.answered ? advance() : checkAnswer();
+});
 els.lessonClose.addEventListener("click", () => { session = null; showView("path"); });
 els.learnBack.addEventListener("click", () => showView("path"));
 els.learnStart.addEventListener("click", startFromLearn);
