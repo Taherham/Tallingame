@@ -159,7 +159,7 @@ function apply(shortlistPath) {
     let src = fs.readFileSync(p, "utf8");
     for (const [unitId, entry] of Object.entries(shortlist)) {
       const videos = (entry.chosen || []).map((v) => ({ id: v.id, title: v.title, channel: v.channel, duration: v.duration, ...(v.start ? { start: v.start } : {}) }));
-      const re = new RegExp(`(id: "${unitId}",[\\s\\S]*?videos: )\\[[\\s\\S]*?\\](,\\n)`);
+      const re = new RegExp(`(id: "${unitId}",[\\s\\S]*?videos: )\\[[\\s\\S]*?\\](,\\r?\\n)`);
       if (!re.test(src)) continue;
       const json = videos.length ? "[\n" + videos.map((v) => "      " + JSON.stringify(v)).join(",\n") + "\n    ]" : "[]";
       src = src.replace(re, `$1${json}$2`);

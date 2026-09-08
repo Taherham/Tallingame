@@ -14,9 +14,10 @@ const WHITE_UNITS = [
       "how to tap in bjj beginners",
     ],
     videos: [
-      {"id":"NfolwJqxRqI","title":"5 Tips To Your First Jiu-Jitsu Class (BJJ Beginner)","channel":"Bernardo Faria BJJ Fanatics","duration":261},
-      {"id":"azzYS65sqks","title":"3 Principles Every BJJ Beginner Should Understand","channel":"Joel Snape","duration":379},
-      {"id":"OVNThMHxY4k","title":"The Positional Hierarchy","channel":"Absolute MMA St Kilda - Melbourne","duration":275}
+      {"id":"VK5Tr0DpW8I","title":"Unwritten Rules of BJJ You NEED To Follow... Or Do You? | BJJ Etiquette 101","channel":"Jordan Teaches Jiujitsu","duration":791},
+      {"id":"peYJDb7LZMM","title":"What Is Inside Position?.. The Most Important Concept In Jiujitsu | BJJ Theory","channel":"Jordan Teaches Jiujitsu","duration":499},
+      {"id":"Jekd1ruohpw","title":"What Every BJJ White Belt And Blue Belt Should Learn And Focus In Jiu Jitsu by Gordon Ryan","channel":"Bernardo Faria BJJ Fanatics","duration":404},
+      {"id":"1a4gkkl5pU8","title":"I Tapped from Pressure as a BJJ White Belt ( Here’s How I fixed it )","channel":"Chewjitsu","duration":287}
     ],
     keyIdeas: [
       "Tap early, tap clearly. A tap is how you stay healthy enough to train tomorrow.",
@@ -71,10 +72,10 @@ const WHITE_UNITS = [
       "bjj breakfall for beginners",
     ],
     videos: [
-      {"id":"TY9j4mRfumE","title":"Basics of Shrimping - BJJ Tutorial","channel":"Vivek Nakarmi - Pentagon MMA","duration":85},
+      {"id":"4fyMiLey6rI","title":"Make Your Hip Escape (Shrimp) Unstoppable by Henry Akins","channel":"Bernardo Faria BJJ Fanatics","duration":454},
       {"id":"4O6-xLJNYQo","title":"Bridge Solo Drill","channel":"Absolute MMA St Kilda - Melbourne","duration":224},
-      {"id":"yC_sSqO4Vx0","title":"Brazilian Jiu Jitsu Basics: How to Do a Technical Stand Up","channel":"Ritchie Yip","duration":107},
-      {"id":"F7utm8Os1_M","title":"Everyone should know how to break fall! 🔥","channel":"Matt Arroyo Jiu Jitsu ","duration":99}
+      {"id":"quMmk9Xs2HE","title":"The Four Types of Technical Standup in BJJ and When to Use Them (with Competition Footage)","channel":"Stephan Kesting","duration":444},
+      {"id":"aauMRslfCyo","title":"Jiu-Jitsu Basics | How & Why to Breakfall","channel":"Knight Jiu-Jitsu","duration":397}
     ],
     keyIdeas: [
       "Move your hips, not your arms. The shrimp makes space; frames only hold it.",
@@ -125,10 +126,10 @@ const WHITE_UNITS = [
       "bjj turtle position basics",
     ],
     videos: [
-      {"id":"6nLxHsl0_2I","title":"5 tips for better SIDE CONTROL 💥🥋 #bjj #brazilianjiujitsu #jiujitsu","channel":"Jordan Teaches Jiujitsu","duration":61},
-      {"id":"Y1k3faXqdis","title":"White Belt Basics - Escape the Back Control","channel":"JeanJacquesMachado","duration":60},
-      {"id":"mv9RWzQiDVw","title":"BJJ For Beginners: Transitioning From Side Control to Mount Position Using the Sneaky Knee!","channel":"Alliance Jiu Jitsu | Knoxville TN","duration":280},
-      {"id":"_ZIC3w_Dg3Y","title":"The 2 Easiest Attacks Against the Turtle Position","channel":"Stephan Kesting","duration":273}
+      {"id":"VF8GrJdysv0","title":"5 Fundamental Side Control Positions in BJJ You Should Know","channel":"Chewjitsu","duration":625},
+      {"id":"gMeDlLkx-yg","title":"FREE Half Guard GAMES For RAPID Improvement | BJJ Games","channel":"Jordan Teaches Jiujitsu","duration":566},
+      {"id":"CFDVh9EVgPA","title":"8 Back Control Tips To DOMINATE | BJJ Fundamentals","channel":"Jordan Teaches Jiujitsu","duration":443},
+      {"id":"-BYPW3FwG7I","title":"Getting Out of Turtle Postion | Jiu-Jitsu Transitions","channel":"Knight Jiu-Jitsu","duration":658}
     ],
     keyIdeas: [
       "Every position has a top and bottom job: the top player advances, the bottom player escapes.",
@@ -179,10 +180,10 @@ const WHITE_UNITS = [
       "bjj headlock escape ground",
     ],
     videos: [
-      {"id":"iyWBcN6FKTI","title":"How to do the Elbow Escape from Mount by Henry Akins","channel":"Bernardo Faria BJJ Fanatics","duration":59},
-      {"id":"q-f9aOkSPqc","title":"5 SIDE CONTROL ESCAPE tips ✅ #bjj #brazilianjiujitsu #jiujitsu","channel":"Jordan Teaches Jiujitsu","duration":61},
-      {"id":"tu3F0O5WL64","title":"Back Escape by John Danaher","channel":"Bernardo Faria BJJ Fanatics","duration":60},
-      {"id":"Nnx8Tq5E5hM","title":"The Three Most Useful Headlock Escapes on the Ground | Jiu-Jitsu Escapes","channel":"Knight Jiu-Jitsu","duration":295}
+      {"id":"RiIBK-moBdE","title":"How To Do The Perfect Jiu Jitsu Upa (Escape From Mount) by Henry Akins","channel":"Bernardo Faria BJJ Fanatics","duration":799},
+      {"id":"QhvavBJ2-y4","title":"How To Escape A Heavy Side Control | Jiu-Jitsu Escapes","channel":"Knight Jiu-Jitsu","duration":483},
+      {"id":"775gXyYzB08","title":"First Five Escapes You Need to Know | Jiu-Jitsu Basics","channel":"Knight Jiu-Jitsu","duration":521},
+      {"id":"9Im8IKc8NeY","title":"How to Escape Kesa Gatame and the Headlock","channel":"Stephan Kesting","duration":482}
     ],
     keyIdeas: [
       "Escapes are a sequence: frame, make space, move your hips into the space.",
@@ -234,9 +235,9 @@ const WHITE_UNITS = [
     ],
     videos: [
       {"id":"KJ5zWkGROM0","title":"How to Break Posture in Closed Guard","channel":"Stephan Kesting","duration":270},
-      {"id":"pQ43Oy5k9yQ","title":"BJJ Moves: Arm Bar From Guard by John Danaher","channel":"BJJ Fanatics","duration":286},
-      {"id":"vZQskHkOxu4","title":"5 TRIANGLE CHOKE tips 🔥 #bjj #brazilianjiujitsu #jiujitsu","channel":"Jordan Teaches Jiujitsu","duration":57},
-      {"id":"RUFNMsscuak","title":"SCISSOR SWEEP by Mikey Musumeci","channel":"BJJ Fanatics","duration":46}
+      {"id":"XUrxSihViJI","title":"Fundamental Armbar from Full Guard for Beginners in BJJ","channel":"Chewjitsu","duration":480},
+      {"id":"LDE0fkzZT6I","title":"How To Do The Perfect Triangle Choke Even If You Have Short Legs by John Danaher","channel":"Bernardo Faria BJJ Fanatics","duration":827},
+      {"id":"86eSdQYSjxA","title":"The BJJ Hip Bump Sweep and How to Connect It to Other Attacks, by Jon Thomas","channel":"Stephan Kesting","duration":473}
     ],
     keyIdeas: [
       "Closed guard is an attacking position. If their posture is up, break it first.",
@@ -287,10 +288,10 @@ const WHITE_UNITS = [
       "bjj half guard pass knee cut underhook",
     ],
     videos: [
-      {"id":"FVfwQGa0pDw","title":"How to open the guard for no Gi!#jiujitsu #jiujitsutips","channel":"Matt Arroyo Jiu Jitsu ","duration":91},
-      {"id":"3yyc7ZdoBVY","title":"Knee Slice Pass & Combos","channel":"MMA Leech","duration":208},
-      {"id":"foKdXSbSM1E","title":"The Easiest Set Up for The Knee Cut Pass","channel":"JonThomasBJJ","duration":55},
-      {"id":"hBsDFnfwieY","title":"How to Pass the Half Guard in Jiu-Jitsu (Even When They Have an Underhook!)","channel":"JonThomasBJJ Plus","duration":246}
+      {"id":"XrTTVy4-s0k","title":"If You Struggle Breaking Closed Guard as White Belt, Then Watch This Video","channel":"Chewjitsu","duration":324},
+      {"id":"m4UI__rEDI8","title":"The Fastest Jiu Jitsu Knee Slice Guard Passing That You've Ever Seen by Andrew Wiltse","channel":"Bernardo Faria BJJ Fanatics","duration":550},
+      {"id":"z5W_PK7ymf0","title":"The BEST BJJ Passes For Beginners + COMMON MISTAKES | Gi & Nogi","channel":"Jordan Teaches Jiujitsu","duration":543},
+      {"id":"GYq1cv9mCdg","title":"How To Pass Half Guard | BJJ Fundamentals","channel":"Jordan Teaches Jiujitsu","duration":426}
     ],
     keyIdeas: [
       "A guard pass isn't done until you've pinned. Past the legs, then settle your weight.",
@@ -341,10 +342,10 @@ const WHITE_UNITS = [
       "bjj bow and arrow choke tutorial",
     ],
     videos: [
-      {"id":"5M1wkbaOYUM","title":"Americana Lock From Mount by Andre Galvao","channel":"BJJ Fanatics","duration":286},
-      {"id":"NIqH3YBcIUI","title":"Tips To Improve Your Kimura from Side Control with Straight Arm Lock","channel":"Chewjitsu","duration":229},
-      {"id":"oYDe-hrazL8","title":"REAR NAKED CHOKE   John Danaher","channel":"BJJ Fanatics","duration":60},
-      {"id":"X5JIZ_gscPI","title":"Bow & Arrow Choke from Back Control by Casey Milliken","channel":"BJJ Fanatics","duration":175}
+      {"id":"GSO8-YYOm18","title":"Americana from Mount","channel":"Absolute MMA St Kilda - Melbourne","duration":462},
+      {"id":"SUgrQp558qA","title":"Increase Your Success with Kimura from Side Control","channel":"Chewjitsu","duration":271},
+      {"id":"zzovZGhewQY","title":"This Back Attack System 10x'd My Submission Rate","channel":"Jordan Teaches Jiujitsu","duration":694},
+      {"id":"r8rP85rJIJ8","title":"Bow and Arrow Choke - Fundamentals Made Easy","channel":"Jordan Teaches Jiujitsu","duration":379}
     ],
     keyIdeas: [
       "From the top, weight first, then grips, then the finish.",
@@ -395,10 +396,10 @@ const WHITE_UNITS = [
       "how to pull guard safely bjj",
     ],
     videos: [
-      {"id":"k95ncVG9pNk","title":"Best Way to Break Grips in Jiu Jitsu Standing with Satoshi Ishii     #bjjblackbelt #bjj","channel":"Bernardo Faria BJJ Fanatics","duration":49},
-      {"id":"dY6IQOvqgBY","title":"Double Leg Solo Drill","channel":"Absolute MMA St Kilda - Melbourne","duration":107},
-      {"id":"laGgFKh7xVc","title":"Osoto gari bjj stance","channel":"Shintaro Higashi","duration":118},
-      {"id":"H2udU0rEE4o","title":"A Simple and Easy Way to Pull Guard in BJJ","channel":"Stephan Kesting","duration":174}
+      {"id":"n6EUwvCkWJ8","title":"BJJ Grip Fighting Guide","channel":"Jordan Teaches Jiujitsu","duration":534},
+      {"id":"tgIXxV6Ax1o","title":"Effective Double Leg Takedown for BJJ Beginners (No Knee Drop!)","channel":"Chewjitsu","duration":376},
+      {"id":"KpOU5oMa81k","title":"Dominate Opponent In Jiu Jitsu with Osoto Gari with Jackson Nagai","channel":"Bernardo Faria BJJ Fanatics","duration":631},
+      {"id":"diwvt-QQ8DM","title":"Simple Guard Pull Counters And Adjustments","channel":"Chewjitsu","duration":230}
     ],
     keyIdeas: [
       "Whoever controls the grips controls the takedown.",
@@ -449,10 +450,10 @@ const WHITE_UNITS = [
       "kneebar toe hold heel hook explained",
     ],
     videos: [
-      {"id":"AZgvIH_bK10","title":"How to Do the Straight Ankle Lock in BJJ (Step by Step) 🦶🏽","channel":"Grapple Lab BJJ","duration":60},
-      {"id":"OODhY1jlH3Q","title":"Straight Ankle Lock Finish by Brian Glick","channel":"BJJ Fanatics","duration":116},
-      {"id":"UGbLauFojxI","title":"4 ANKLE LOCK defense tips 🥋 #bjj #brazilianjiujitsu #jiujitsu","channel":"Jordan Teaches Jiujitsu","duration":53},
-      {"id":"skz-bD0U788","title":"Ankle Lock Defense Concepts by Daniel de Groot","channel":"BJJ Fanatics","duration":174}
+      {"id":"5ZAqUQpsus8","title":"Straight Ankle Lock for White Belts (Powerful Details for More Finishes)","channel":"Chewjitsu","duration":695},
+      {"id":"oTzTtF21TqM","title":"Sneaky Submission to Counter Straight Ankle Locks (White Belt Legal in BJJ)","channel":"Chewjitsu","duration":214},
+      {"id":"bqiMzgjmo_U","title":"Don’t Fear the Reaper in BJJ (Protect Your Knee & Avoid DQ in IBJJF)","channel":"Chewjitsu","duration":542},
+      {"id":"-uTD6BwDCdw","title":"Outside Heel Hook Kneebar by Craig Jones","channel":"BJJ Fanatics","duration":184}
     ],
     keyIdeas: [
       "The straight ankle lock is the one leg lock every white belt should know, and defend.",
