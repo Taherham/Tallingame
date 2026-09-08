@@ -14,14 +14,14 @@ const WHITE_UNITS = [
       "how to tap in bjj beginners",
     ],
     videos: [
-      {"id":"bYnlWdXvvH4","title":"Top 10 Questions For Your First Brazilian Jiu-Jitsu Class","channel":"GracieBreakdown","duration":268},
-      {"id":"81bjvwIMAUM","title":"Positional Hierarchy by Lachlan Giles","channel":"BJJ Fanatics","duration":99},
+      {"id":"NfolwJqxRqI","title":"5 Tips To Your First Jiu-Jitsu Class (BJJ Beginner)","channel":"Bernardo Faria BJJ Fanatics","duration":261},
+      {"id":"azzYS65sqks","title":"3 Principles Every BJJ Beginner Should Understand","channel":"Joel Snape","duration":379},
       {"id":"OVNThMHxY4k","title":"The Positional Hierarchy","channel":"Absolute MMA St Kilda - Melbourne","duration":275}
     ],
     keyIdeas: [
       "Tap early, tap clearly. A tap is how you stay healthy enough to train tomorrow.",
       "Position before submission: get somewhere stable first, then attack.",
-      "New moves need a coach's eyes on them first — ask before you try something you saw online.",
+      "New moves need a coach's eyes on them first. Ask before you try something you saw online.",
     ],
     lessons: [
       {
@@ -41,7 +41,7 @@ const WHITE_UNITS = [
           { type: "mc", prompt: "Which position is generally considered the most dominant?", choices: ["Back control", "Mount", "Side control", "Closed guard"], answer: 0 },
           { type: "mc", prompt: "\"Position before submission\" means:", choices: ["Secure a stable, dominant position first, then attack", "Always attack immediately", "Never attempt submissions", "Only positions score points"], answer: 0 },
           { type: "mc", prompt: "You're on the bottom of side control. Your first goal is usually to:", choices: ["Escape or recover guard, not attack", "Attack a submission", "Give up your back", "Stay flat and wait"], answer: 0 },
-          { type: "position", position: "mount", prompt: "Coral is on top. Which position is this?", choices: ["Mount", "Side control", "Knee on belly", "North-south"], answer: 0 },
+          { type: "mc", prompt: "Which position matches: top player sits astride the partner's hips, knees on the mat, facing the head?", choices: ["Mount", "Side control", "Knee on belly", "North-south"], answer: 0 },
         ],
       },
       {
@@ -49,7 +49,7 @@ const WHITE_UNITS = [
         title: "The belt system",
         teach: [
           { title: "Stripes mark the road, not the destination", body: "Each adult belt has four stripes. A stripe usually lands after a chunk of consistent training, not a single great class." },
-          { title: "Belts run white, blue, purple, brown, black", body: "Promotion is a coach's call, built on time on the mat and steady improvement against resisting partners — not a test you cram for." },
+          { title: "Belts run white, blue, purple, brown, black", body: "Promotion is a coach's call, built on time on the mat and steady improvement against resisting partners, not a test you cram for." },
         ],
         questions: [
           { type: "mc", prompt: "How many stripes does a belt earn before the next belt?", choices: ["Four", "Two", "Ten", "None"], answer: 0 },
@@ -88,7 +88,7 @@ const WHITE_UNITS = [
         questions: [
           { type: "mc", prompt: "What does the shrimp (hip escape) mainly do?", choices: ["Moves your hips away to create space", "Raises your hips to throw the opponent", "Turns you onto your knees", "Locks a submission"], answer: 0 },
           { type: "mc", prompt: "During a shrimp, your shoulders and hips should be:", choices: ["On their side, facing the opponent", "Flat on the mat", "Facing away from the opponent", "Lifted completely off the mat"], answer: 0 },
-          { type: "mc", prompt: "How do frames (forearms and shins) work with the shrimp?", choices: ["They hold the space your hips just created", "They push the opponent away with strength", "They replace the hip movement", "They don't—frames are unrelated"], answer: 0 },
+          { type: "mc", prompt: "How do frames (forearms and shins) work with the shrimp?", choices: ["They hold the space your hips just created", "They push the opponent away with strength", "They replace the hip movement entirely", "They don't. Frames are unrelated to shrimping"], answer: 0 },
           { type: "sequence", prompt: "Order the steps of a shrimp when the opponent is on your side:", steps: ["Turn onto your side facing them and frame", "Plant your foot and bridge slightly", "Push your hips back and away", "Bring your knee into the space you created"] },
         ],
       },
@@ -96,10 +96,10 @@ const WHITE_UNITS = [
         id: "w2b",
         title: "Bridging",
         questions: [
-          { type: "mc", prompt: "The bridge (upa) is powered by:", choices: ["Driving your feet into the mat and lifting your hips over one shoulder", "Your arms pushing up", "Your neck", "Pulling with your hands"], answer: 0 },
-          { type: "mc", prompt: "When bridging to escape mount, you drive over:", choices: ["One shoulder, toward the side where you trapped their arm", "Straight up toward the ceiling", "Your head", "Your lower back"], answer: 0 },
+          { type: "mc", prompt: "The bridge (upa) is powered by:", choices: ["Driving your feet into the mat and lifting your hips over one shoulder", "Your arms pushing straight up", "Your neck pressing into the mat", "Pulling hard with your hands"], answer: 0 },
+          { type: "mc", prompt: "When bridging to escape mount, you drive over:", choices: ["One shoulder, toward the side where you trapped their arm", "Straight up toward the ceiling", "Your head, rolling forward", "Your lower back, arching hard"], answer: 0 },
           { type: "mc", prompt: "Why combine a bridge and a shrimp?", choices: ["The bridge unloads their weight; the shrimp uses that moment to move your hips", "They're the same movement", "Bridging alone always escapes", "Shrimping only works standing"], answer: 0 },
-          { type: "mc", prompt: "At the top of a good bridge, what touches the mat?", choices: ["Your feet and one shoulder only", "Your whole back", "Your head only", "Your hands"], answer: 0 },
+          { type: "mc", prompt: "At the top of a good bridge, what touches the mat?", choices: ["Your feet and one shoulder only", "Your whole back, flat and relaxed", "Your head only, arched back", "Just your hands, pushing down"], answer: 0 },
         ],
       },
       {
@@ -109,7 +109,7 @@ const WHITE_UNITS = [
           { type: "sequence", prompt: "Order the technical stand-up:", steps: ["Sit up and post one hand behind you", "Plant the opposite foot in front, knee bent", "Lift your hips and swing the free leg back under you", "Stand up with your free hand guarding"] },
           { type: "mc", prompt: "Why use a technical stand-up instead of just getting up?", choices: ["You keep a hand up and a leg back, so you're protected and balanced as you rise", "It gets you up faster than any other way", "It's a rule that only applies in MMA gyms", "It's how you rack up more points"], answer: 0 },
           { type: "mc", prompt: "When breakfalling backward, you should:", choices: ["Tuck your chin and slap the mat with your arms", "Reach back with your hands to catch yourself", "Land on your elbows", "Look up at the ceiling"], answer: 0 },
-          { type: "mc", prompt: "A forward roll in jiu-jitsu goes over:", choices: ["Your shoulder, diagonally across your back", "Your head, straight over", "Your back, flat", "Your knees"], answer: 0 },
+          { type: "mc", prompt: "A forward roll in jiu-jitsu goes over:", choices: ["Your shoulder, diagonally across your back", "Your head, straight over the top", "Your back, lying flat the whole time", "Your knees, staying low to the mat"], answer: 0 },
         ],
       },
     ],
@@ -132,17 +132,17 @@ const WHITE_UNITS = [
     ],
     keyIdeas: [
       "Every position has a top and bottom job: the top player advances, the bottom player escapes.",
-      { text: "Guard is the only bottom position where you're still attacking.", figure: "closed_guard" },
-      { text: "Back control is the one position where you can't see your opponent, and that's what makes it so strong.", figure: "back_control" },
+      "Guard is the only bottom position where you're still attacking.",
+      "Back control is the one position where you can't see your opponent, and that's what makes it so strong.",
     ],
     lessons: [
       {
         id: "w3a",
         title: "Top positions",
         questions: [
-          { type: "position", position: "side_control", prompt: "Which position is this?", choices: ["Side control", "Mount", "Half guard", "Turtle"], answer: 0 },
-          { type: "position", position: "knee_on_belly", prompt: "Which position is this?", choices: ["Knee on belly", "Mount", "North-south", "Back control"], answer: 0 },
-          { type: "position", position: "north_south", prompt: "Which position is this?", choices: ["North-south", "Side control", "Turtle", "Closed guard"], answer: 0 },
+          { type: "mc", prompt: "Which position matches: top player lies chest-to-chest across the partner, past their legs?", choices: ["Side control", "Mount", "Half guard", "Turtle"], answer: 0 },
+          { type: "mc", prompt: "Which position matches: top player drives one knee into the partner's belly, other leg posted out straight for balance?", choices: ["Knee on belly", "Mount", "North-south", "Back control"], answer: 0 },
+          { type: "mc", prompt: "Which position matches: top player is chest-down over the partner, facing the opposite direction?", choices: ["North-south", "Side control", "Turtle", "Closed guard"], answer: 0 },
           { type: "mc", prompt: "Which of these top positions gives you the most control and attacking options?", choices: ["Mount", "Side control", "Knee on belly", "Half guard top"], answer: 0 },
         ],
       },
@@ -150,8 +150,8 @@ const WHITE_UNITS = [
         id: "w3b",
         title: "Guards",
         questions: [
-          { type: "position", position: "closed_guard", prompt: "Coral is on top. Which guard is the partner playing?", choices: ["Closed guard", "Half guard", "Butterfly guard", "Spider guard"], answer: 0 },
-          { type: "position", position: "half_guard", prompt: "Which position is this?", choices: ["Half guard", "Closed guard", "Turtle", "Knee on belly"], answer: 0 },
+          { type: "mc", prompt: "Which guard matches: the bottom player's legs are locked behind the top player's back?", choices: ["Closed guard", "Half guard", "Butterfly guard", "Spider guard"], answer: 0 },
+          { type: "mc", prompt: "Which position matches: the bottom player traps one of the top player's legs between their own?", choices: ["Half guard", "Closed guard", "Turtle", "Knee on belly"], answer: 0 },
           { type: "mc", prompt: "In \"open guard\" your legs:", choices: ["Aren't locked around them; you use hooks, frames and grips", "Are always locked tightly around their waist", "Rest flat and relaxed on the mat", "Are wrapped behind their back"], answer: 0 },
           { type: "mc", prompt: "Butterfly guard means:", choices: ["Sitting up with both feet hooked inside their thighs", "Lying flat with legs locked", "Standing over them", "Kneeling in front of them"], answer: 0 },
         ],
@@ -160,10 +160,10 @@ const WHITE_UNITS = [
         id: "w3c",
         title: "Back & turtle",
         questions: [
-          { type: "position", position: "back_control", prompt: "Which position is this?", choices: ["Back control", "Turtle", "Mount", "Side control"], answer: 0 },
-          { type: "position", position: "turtle", prompt: "Which position is the partner in?", choices: ["Turtle", "Back control", "North-south", "Half guard"], answer: 0 },
+          { type: "mc", prompt: "Which position matches: both seated, the attacker behind with a seatbelt grip and both hooks in?", choices: ["Back control", "Turtle", "Mount", "Side control"], answer: 0 },
+          { type: "mc", prompt: "Which position matches: bottom player on hands and knees, top player controlling from behind?", choices: ["Turtle", "Back control", "North-south", "Half guard"], answer: 0 },
           { type: "mc", prompt: "\"Hooks\" in back control are:", choices: ["Your feet inside their thighs", "Your hands on their collar", "Your legs crossed in front of their stomach", "Your chin on their shoulder"], answer: 0 },
-          { type: "mc", prompt: "Why is crossing your feet in front of their stomach a mistake from back control?", choices: ["They can figure-four your ankles and attack them, and you lose the hooks", "It's illegal", "It scores points for them", "It isn't a mistake"], answer: 0 },
+          { type: "mc", prompt: "Why is crossing your feet in front of their stomach a mistake from back control?", choices: ["They can figure-four your ankles and attack them, and you lose the hooks", "It puts you off balance", "It scores points for them", "It isn't actually a mistake"], answer: 0 },
         ],
       },
     ],
@@ -196,7 +196,7 @@ const WHITE_UNITS = [
         questions: [
           { type: "sequence", prompt: "Order the bridge-and-roll (upa) escape:", steps: ["Trap one arm and the foot on the same side", "Bridge hard over that shoulder", "Roll them over", "Land inside their guard"] },
           { type: "mc", prompt: "The elbow-knee escape from mount works by:", choices: ["Shrimping and sliding your knee inside to recover half or full guard", "Pushing their chest with both hands", "Bridging straight up", "Rolling onto your stomach"], answer: 0 },
-          { type: "mc", prompt: "Before you upa, you must trap their:", choices: ["Arm and foot on the same side, so they can't post", "Both arms", "Head", "Belt"], answer: 0 },
+          { type: "mc", prompt: "Before you upa, you must trap their:", choices: ["Arm and foot on the same side, so they can't post", "Both of their arms", "Their head, firmly", "Their belt, with both hands"], answer: 0 },
           { type: "mc", prompt: "The biggest mistake when you're mounted:", choices: ["Pushing on their chest with straight arms", "Keeping your elbows tight to your ribs", "Bridging to make space and escape", "Framing on their hips to block them"], answer: 0 },
         ],
       },
@@ -207,7 +207,7 @@ const WHITE_UNITS = [
           { type: "sequence", prompt: "Order the shrimp-to-guard escape from side control:", steps: ["Frame on their neck and hip", "Bridge into them to make space", "Shrimp your hips away", "Bring your knee in and recover guard"] },
           { type: "mc", prompt: "The \"underhook to knees\" escape ends with you:", choices: ["On your knees, driving into them or taking a single leg", "Back in their closed guard", "Standing over them completely free", "Flat on your back again"], answer: 0 },
           { type: "mc", prompt: "Where should your near-side elbow be under side control?", choices: ["Tight to your body, framing on their hip", "Extended overhead", "Flat on the mat away from you", "Behind your head"], answer: 0 },
-          { type: "mc", prompt: "Why is lying flat with both shoulders pinned so bad under side control?", choices: ["You can't shrimp or turn, so they control every movement", "It's illegal", "It scores points for them", "It's actually fine"], answer: 0 },
+          { type: "mc", prompt: "Why is lying flat with both shoulders pinned so bad under side control?", choices: ["You can't shrimp or turn, so they control every movement", "It tires your arms out fast", "It scores points for them", "It's actually a fine spot to be"], answer: 0 },
         ],
       },
       {
@@ -215,9 +215,9 @@ const WHITE_UNITS = [
         title: "Back & headlock escapes",
         questions: [
           { type: "sequence", prompt: "Order the basic back escape:", steps: ["Tuck your chin and control their choking hand", "Slide your hips out and get your shoulders to the mat", "Clear the hook on that side", "Turn into them to guard or come on top"] },
-          { type: "mc", prompt: "When defending the rear naked choke, which hand matters most?", choices: ["The hand of the arm reaching around your neck", "Their under-hook hand", "Your own top hand", "Neither"], answer: 0 },
-          { type: "mc", prompt: "Escaping a side headlock on the ground usually starts with:", choices: ["Bridging into them so you can free a leg and hook their head, or roll them", "Pulling your head out by force", "Tapping", "Lying still"], answer: 0 },
-          { type: "mc", prompt: "Someone has your back with both hooks in. First priority:", choices: ["Defend the neck", "Escape the hooks", "Attack their feet", "Stand up"], answer: 0 },
+          { type: "mc", prompt: "When defending the rear naked choke, which hand matters most?", choices: ["The hand of the arm reaching around your neck", "Their under-hook hand, the other one", "Your own top hand, gripping tight", "Neither hand really matters here"], answer: 0 },
+          { type: "mc", prompt: "Escaping a side headlock on the ground usually starts with:", choices: ["Bridging into them so you can free a leg and hook their head, or roll them", "Pulling your head out by force", "Tapping immediately, every time", "Lying still until they let go"], answer: 0 },
+          { type: "mc", prompt: "Someone has your back with both hooks in. First priority:", choices: ["Defend the neck", "Escape the hooks", "Attack their feet", "Stand straight up"], answer: 0 },
         ],
       },
     ],
@@ -250,7 +250,7 @@ const WHITE_UNITS = [
         questions: [
           { type: "mc", prompt: "Breaking your opponent's posture in closed guard means:", choices: ["Pulling them forward so their back rounds and their hips come close", "Pushing them away to create distance", "Standing all the way up out of guard", "Locking your ankles even tighter"], answer: 0 },
           { type: "mc", prompt: "A classic grip combination to break posture:", choices: ["Cross collar grip plus their same-side sleeve, pulling with your legs", "Two hands on their ankle", "Belt grip only", "Both hands on their head"], answer: 0 },
-          { type: "mc", prompt: "Most of the pulling power when you break posture comes from:", choices: ["Your legs, pulling their hips in and rocking them forward", "Your biceps", "Your neck", "Your fingers"], answer: 0 },
+          { type: "mc", prompt: "Most of the pulling power when you break posture comes from:", choices: ["Your legs, pulling their hips in and rocking them forward", "Your biceps, curling hard", "Your neck, pulling down", "Your fingers, gripping tighter"], answer: 0 },
           { type: "sequence", prompt: "Order the posture break from closed guard:", steps: ["Get a deep collar grip", "Grip their opposite sleeve or wrist", "Pull your knees to your chest to rock them forward", "Keep their head down with the collar grip"] },
         ],
       },
@@ -260,7 +260,7 @@ const WHITE_UNITS = [
         questions: [
           { type: "sequence", prompt: "Order the armbar from closed guard:", steps: ["Control their arm across the centerline and break their posture", "Put a foot on their hip and angle your body", "Swing your leg over their head", "Squeeze your knees, lift your hips, extend the arm"] },
           { type: "mc", prompt: "The triangle choke works by:", choices: ["Squeezing their neck against their own shoulder with your legs", "Choking with your arms", "Twisting their head", "Squeezing both of their arms"], answer: 0 },
-          { type: "mc", prompt: "For a triangle, one of the opponent's arms must be:", choices: ["Inside your legs while the other is outside", "Both inside", "Both outside", "Behind their back"], answer: 0 },
+          { type: "mc", prompt: "For a triangle, one of the opponent's arms must be:", choices: ["Inside your legs while the other is outside", "Both arms inside your legs", "Both arms outside your legs", "Pinned behind their own back"], answer: 0 },
           { type: "mc", prompt: "The cross collar choke from guard uses:", choices: ["Two deep opposing collar grips, elbows pulling toward you", "One grip on the belt", "A wrist grip", "The skirt of the gi"], answer: 0 },
         ],
       },
@@ -270,7 +270,7 @@ const WHITE_UNITS = [
         questions: [
           { type: "sequence", prompt: "Order the scissor sweep:", steps: ["Get collar and sleeve grips and angle your hips", "Shin across their belly, other leg low on the mat", "Pull them forward onto your shin", "Scissor your legs and roll them over"] },
           { type: "mc", prompt: "The hip bump sweep works best when the opponent:", choices: ["Is postured up or leaning back", "Is smashing you flat", "Is standing", "Has your collar"], answer: 0 },
-          { type: "mc", prompt: "The flower (pendulum) sweep uses:", choices: ["An underhook on their leg and a pendulum swing of your leg to roll them", "A foot on the hip only", "Standing up", "A neck crank"], answer: 0 },
+          { type: "mc", prompt: "The flower (pendulum) sweep uses:", choices: ["An underhook on their leg and a pendulum swing of your leg to roll them", "Just a foot on the hip", "Standing all the way up", "A crank on their neck"], answer: 0 },
           { type: "mc", prompt: "For a guillotine from guard, your arm goes:", choices: ["Around the front of their neck, the blade of your wrist under their chin", "Behind their neck", "Around their waist", "Under their armpit"], answer: 0 },
         ],
       },
@@ -303,9 +303,9 @@ const WHITE_UNITS = [
         title: "Opening the closed guard",
         questions: [
           { type: "sequence", prompt: "Order the standing guard break:", steps: ["Posture up and control their hips or a sleeve", "Step one foot up beside their hip", "Stand up, pushing their knee down", "Step back to pop their ankles open"] },
-          { type: "mc", prompt: "When you stand in someone's closed guard, the big danger is:", choices: ["Getting swept, so keep your base wide and low", "Getting ankle locked", "Nothing", "Losing points"], answer: 0 },
+          { type: "mc", prompt: "When you stand in someone's closed guard, the big danger is:", choices: ["Getting swept, so keep your base wide and low", "Getting your ankle locked", "There's no real danger here", "Losing points on the board"], answer: 0 },
           { type: "mc", prompt: "Good posture inside closed guard:", choices: ["Head up, back straight, elbows in, hips forward", "Head down, arms extended", "Leaning back with straight arms", "Chest on their chest"], answer: 0 },
-          { type: "mc", prompt: "Why post a hand on their chest or belt while opening guard?", choices: ["To stop them sitting up or pulling you down", "To strike", "To grab the belt for points", "To rest"], answer: 0 },
+          { type: "mc", prompt: "Why post a hand on their chest or belt while opening guard?", choices: ["To stop them sitting up or pulling you down", "To set up a strike", "To grab the belt for points", "To rest your arm"], answer: 0 },
         ],
       },
       {
@@ -314,8 +314,8 @@ const WHITE_UNITS = [
         questions: [
           { type: "sequence", prompt: "Order the knee slice pass:", steps: ["Control their hip and get a cross-face or underhook", "Slide your knee across their thigh", "Drive shoulder pressure and flatten them", "Free your trailing leg and settle in side control"] },
           { type: "mc", prompt: "The toreando (bullfighter) pass controls:", choices: ["Their pant legs or knees while you move around their legs", "Their collar with both hands", "Their head with a cross-face", "Their belt from behind"], answer: 0 },
-          { type: "mc", prompt: "The main goal of any guard pass:", choices: ["Get past their legs and establish a pin", "Stand up", "Pull guard", "Submit them from inside guard"], answer: 0 },
-          { type: "mc", prompt: "In a knee slice, your sliding knee goes:", choices: ["Across their thigh toward the mat on the far side", "Onto their belly", "Under their leg", "Behind you"], answer: 0 },
+          { type: "mc", prompt: "The main goal of any guard pass:", choices: ["Get past their legs and establish a pin", "Stand all the way up", "Pull your own guard", "Submit them from inside their guard"], answer: 0 },
+          { type: "mc", prompt: "In a knee slice, your sliding knee goes:", choices: ["Across their thigh toward the mat on the far side", "Straight onto their belly", "Under their trailing leg", "Behind you, out of the way"], answer: 0 },
         ],
       },
       {
@@ -366,10 +366,10 @@ const WHITE_UNITS = [
         id: "w7b",
         title: "Side control attacks",
         questions: [
-          { type: "mc", prompt: "The kimura from side control attacks:", choices: ["Their far arm, bent behind them, with a figure-four grip", "Their near ankle", "Their neck", "Their fingers"], answer: 0 },
+          { type: "mc", prompt: "The kimura from side control attacks:", choices: ["Their far arm, bent behind them, with a figure-four grip", "Their near ankle joint", "Their neck, with a choke", "Their fingers, one by one"], answer: 0 },
           { type: "mc", prompt: "The americana from side control:", choices: ["Pins their wrist to the mat above their head with a figure-four", "Pulls their arm straight down", "Grabs the belt", "Chokes with the lapel"], answer: 0 },
           { type: "sequence", prompt: "Order the transition from side control to mount:", steps: ["Cross-face and control their far hip", "Slide your knee across their belly", "Step your far leg over their body", "Sink your hips and settle into mount"] },
-          { type: "mc", prompt: "Knee on belly from side control is set up by:", choices: ["Popping up and placing your near knee on their belly, other foot posted wide", "Lying flatter", "Grabbing both wrists", "Standing up"], answer: 0 },
+          { type: "mc", prompt: "Knee on belly from side control is set up by:", choices: ["Popping up and placing your near knee on their belly, other foot posted wide", "Lying flatter against them", "Grabbing both of their wrists", "Standing all the way up"], answer: 0 },
         ],
       },
       {
@@ -411,7 +411,7 @@ const WHITE_UNITS = [
         title: "Grips & stance",
         questions: [
           { type: "mc", prompt: "A good grappling stance:", choices: ["Knees bent, feet staggered, head up, hands in front", "Straight legs, feet together", "Hands down at your sides", "Leaning back"], answer: 0 },
-          { type: "mc", prompt: "Why does breaking grips matter?", choices: ["Whoever controls the grips controls the takedown", "Grips are illegal", "It scores", "It tires them out"], answer: 0 },
+          { type: "mc", prompt: "Why does breaking grips matter?", choices: ["Whoever controls the grips controls the takedown", "Grips are just for show", "It automatically scores", "It tires your opponent out"], answer: 0 },
           { type: "mc", prompt: "A standing \"underhook\" is:", choices: ["Your arm under theirs, hand on their back", "Your arm over theirs", "A collar grip", "A wrist grip"], answer: 0 },
           { type: "mc", prompt: "Where's the safe distance when standing?", choices: ["Out of reach, or chest-to-chest with grips. Never half-way.", "Always arm's length", "Always touching", "It doesn't matter"], answer: 0 },
         ],
@@ -422,8 +422,8 @@ const WHITE_UNITS = [
         questions: [
           { type: "sequence", prompt: "Order the double leg takedown:", steps: ["Change levels: bend your knees and drop your hips", "Step in deep between their feet", "Drive with your head to the side and wrap both legs", "Lift or run through to finish"] },
           { type: "mc", prompt: "A single leg takedown:", choices: ["Controls one leg while you drive or trip them down", "Lifts both legs", "Trips from behind only", "Needs a collar grip"], answer: 0 },
-          { type: "mc", prompt: "Osoto gari is:", choices: ["A judo throw reaping the back of their leg while you pull them off balance", "A hip throw", "A foot sweep to the front", "A guard pull"], answer: 0 },
-          { type: "mc", prompt: "Head position in a double leg:", choices: ["Head up and to the side of their hip, driving through", "Head down between their legs", "Head back", "It doesn't matter"], answer: 0 },
+          { type: "mc", prompt: "Osoto gari is:", choices: ["A judo throw reaping the back of their leg while you pull them off balance", "A throw off the hip", "A foot sweep to the front", "A guard pull from standing"], answer: 0 },
+          { type: "mc", prompt: "Head position in a double leg:", choices: ["Head up and to the side of their hip, driving through", "Head down between their legs", "Head tilted back and away", "It doesn't matter where it is"], answer: 0 },
         ],
       },
       {
@@ -431,7 +431,7 @@ const WHITE_UNITS = [
         title: "Guard pull & takedown defense",
         questions: [
           { type: "mc", prompt: "A guard pull is:", choices: ["Sitting to guard while controlling grips so you don't give up points", "Falling down randomly", "Getting swept", "Pulling their guard open"], answer: 0 },
-          { type: "mc", prompt: "To pull guard safely you should first:", choices: ["Have grips (collar and sleeve) and put a foot on their hip", "Jump", "Turn away", "Let go of everything"], answer: 0 },
+          { type: "mc", prompt: "To pull guard safely you should first:", choices: ["Have grips (collar and sleeve) and put a foot on their hip", "Jump backward suddenly", "Turn your back away", "Let go of everything first"], answer: 0 },
           { type: "mc", prompt: "A sprawl is:", choices: ["Throwing your hips down and back, legs out, to stop a takedown", "Sitting on them", "Jumping guard", "Rolling backward"], answer: 0 },
           { type: "sequence", prompt: "Order the sprawl and go-behind:", steps: ["See the shot coming: hands to their head and shoulders", "Sprawl: hips down, legs back", "Cross-face and drive their head down", "Circle behind to their back"] },
         ],
@@ -465,18 +465,18 @@ const WHITE_UNITS = [
         title: "Straight ankle lock",
         questions: [
           { type: "sequence", prompt: "Order the straight ankle lock:", steps: ["Trap their leg between yours and control the foot", "Wrap the blade of your wrist under their Achilles", "Grip your hands and pull the foot to your chest", "Extend your hips and arch back to finish"] },
-          { type: "mc", prompt: "The straight ankle lock attacks:", choices: ["The ankle and Achilles, by hyperextension and pressure", "The knee", "The hip", "The toes"], answer: 0 },
+          { type: "mc", prompt: "The straight ankle lock attacks:", choices: ["The ankle and Achilles, by hyperextension and pressure", "The knee, by twisting it", "The hip, by prying it", "The toes, by bending them"], answer: 0 },
           { type: "mc", prompt: "The blade of your wrist goes:", choices: ["Under the Achilles tendon, just above the heel", "On their toes", "Behind their knee", "On their shin"], answer: 0 },
-          { type: "mc", prompt: "For a clean, safe straight ankle lock, your outside foot should be:", choices: ["On their hip on the same side as their leg, never crossing inward over the knee", "Across their belly", "Behind their back", "Anywhere"], answer: 0 },
+          { type: "mc", prompt: "For a clean, safe straight ankle lock, your outside foot should be:", choices: ["On their hip on the same side as their leg, never crossing inward over the knee", "Flat across their belly", "Tucked behind their back", "Anywhere that feels comfortable"], answer: 0 },
         ],
       },
       {
         id: "w9b",
         title: "Defending & safety",
         questions: [
-          { type: "mc", prompt: "Your first defense to a straight ankle lock:", choices: ["Boot your foot (toes toward your shin), push your heel into them and come forward", "Pull your leg straight out", "Roll away", "Freeze"], answer: 0 },
-          { type: "mc", prompt: "With leg locks, tap:", choices: ["Early. Ankle and knee injuries come before the pain does.", "When it really hurts", "Never", "Only if your partner says to"], answer: 0 },
-          { type: "mc", prompt: "Why do coaches say never pull your leg straight out of an ankle lock?", choices: ["It tightens the lock on the Achilles", "It's illegal", "It's slow", "It works fine"], answer: 0 },
+          { type: "mc", prompt: "Your first defense to a straight ankle lock:", choices: ["Boot your foot (toes toward your shin), push your heel into them and come forward", "Pull your leg straight out", "Roll away as fast as you can", "Freeze and hope it stops"], answer: 0 },
+          { type: "mc", prompt: "With leg locks, tap:", choices: ["Early. Ankle and knee injuries come before the pain does.", "Only when it really hurts", "Never, no matter what", "Only if your partner tells you to"], answer: 0 },
+          { type: "mc", prompt: "Why do coaches say never pull your leg straight out of an ankle lock?", choices: ["It tightens the lock on the Achilles", "It wastes too much energy", "It's just too slow to work", "It actually works fine"], answer: 0 },
           { type: "mc", prompt: "Training leg locks safely means:", choices: ["Go slow, apply gradually, tap early, respect the tap", "Crank fast before they can defend", "Only try them in competition", "Never practice them"], answer: 0 },
         ],
       },
@@ -484,9 +484,9 @@ const WHITE_UNITS = [
         id: "w9c",
         title: "Other leg locks",
         questions: [
-          { type: "mc", prompt: "A kneebar attacks:", choices: ["The knee joint, by hyperextension", "The ankle", "The hip", "The neck"], answer: 0 },
-          { type: "mc", prompt: "A toe hold attacks:", choices: ["The ankle and foot, by rotation", "The knee", "The shoulder", "The wrist"], answer: 0 },
-          { type: "mc", prompt: "A heel hook attacks:", choices: ["The knee, by rotating the heel", "The toes", "The elbow", "The hip"], answer: 0 },
+          { type: "mc", prompt: "A kneebar attacks:", choices: ["The knee joint, by hyperextension", "The ankle, by twisting it", "The hip, by prying it back", "The neck, by squeezing it"], answer: 0 },
+          { type: "mc", prompt: "A toe hold attacks:", choices: ["The ankle and foot, by rotation", "The knee, by bending it back", "The shoulder, by cranking it", "The wrist, by folding it"], answer: 0 },
+          { type: "mc", prompt: "A heel hook attacks:", choices: ["The knee, by rotating the heel", "The toes, by curling them", "The elbow, by extending it", "The hip, by rotating it"], answer: 0 },
           { type: "mc", prompt: "Because leg locks can injure a joint before you feel pain, most gyms:", choices: ["Ask you to check with a coach before drilling them live", "Ban every leg attack forever", "Let anyone do anything at full speed", "Only allow them in competition"], answer: 0 },
         ],
       },

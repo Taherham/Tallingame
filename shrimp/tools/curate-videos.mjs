@@ -6,7 +6,8 @@
 //   node shrimp/tools/curate-videos.mjs --apply shortlist.json          # write chosen videos into js/*.js
 //   YOUTUBE_API_KEY=... node shrimp/tools/curate-videos.mjs --verify    # re-check that chosen videos still exist and embed
 //
-// Rules: embeddable, under 5 minutes, English, from channels we trust when possible.
+// Rules: embeddable, 3 to 15 minutes (long enough to actually teach the material in one watch),
+// English, from channels we trust when possible. Never Gracie-affiliated channels.
 // Quota: each search costs 100 units of the free 10,000/day. 18 units x 4 queries = 7,200 plus a few
 // units for video details. Run the full curation at most once a day.
 
@@ -18,10 +19,12 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const jsDir = path.join(here, "..", "js");
 const API = "https://www.googleapis.com/youtube/v3";
 const KEY = process.env.YOUTUBE_API_KEY;
-const MAX_SECONDS = 5 * 60;
+const MIN_SECONDS = 3 * 60;
+const MAX_SECONDS = 15 * 60;
 const PER_UNIT = 4;
 
 // Channels whose instruction we trust for beginners. Matching is case-insensitive substring on channelTitle.
+// Never add Gracie-affiliated channels here.
 const TRUSTED = [
   { match: "jordan teaches jiujitsu", boost: 40 },
   { match: "chewjitsu", boost: 30 },
@@ -30,8 +33,6 @@ const TRUSTED = [
   { match: "jon thomas", boost: 25 },
   { match: "lachlan giles", boost: 25 },
   { match: "absolute mma", boost: 20 },
-  { match: "gracie breakdown", boost: 20 },
-  { match: "gracie university", boost: 15 },
   { match: "bjj fanatics", boost: 20 },
   { match: "knight jiu-jitsu", boost: 20 },
   { match: "bernardo faria", boost: 15 },
@@ -39,6 +40,7 @@ const TRUSTED = [
   { match: "the grappling academy", boost: 15 },
   { match: "invisible jiu jitsu", boost: 10 },
 ];
+const BLOCKED = ["gracie"];
 
 const args = process.argv.slice(2);
 const flag = (name) => { const i = args.indexOf(name); return i >= 0 ? (args[i + 1] ?? true) : null; };
@@ -120,8 +122,9 @@ async function curate(onlyUnit) {
       const details = await videoDetails(ids);
       for (const v of details) {
         const secs = isoToSeconds(v.contentDetails?.duration);
-        if (secs == null || secs > MAX_SECONDS || secs < 45) continue;
+        if (secs == null || secs > MAX_SECONDS || secs < MIN_SECONDS) continue;
         if (v.status?.embeddable === false) continue;
+        if (BLOCKED.some((b) => v.snippet.channelTitle.toLowerCase().includes(b))) continue;
         const entry = candidates.get(v.id) || {
           id: v.id, title: v.snippet.title, channel: v.snippet.channelTitle, duration: secs,
           views: +(v.statistics?.viewCount || 0), url: `https://www.youtube.com/watch?v=${v.id}`,
@@ -179,7 +182,8 @@ async function verify() {
     if (!d) { console.error(`MISSING  ${u.id}  ${v.id}  ${v.title}`); bad++; continue; }
     if (d.status?.embeddable === false) { console.error(`NO-EMBED ${u.id}  ${v.id}  ${v.title}`); bad++; }
     const secs = isoToSeconds(d.contentDetails?.duration);
-    if (secs > MAX_SECONDS) { console.error(`TOO-LONG ${u.id}  ${v.id}  ${fmt(secs)}  ${v.title}`); bad++; }
+    if (secs > MAX_SECONDS) { console.error(`TOO-LONG  ${u.id}  ${v.id}  ${fmt(secs)}  ${v.title}`); bad++; }
+    if (secs < MIN_SECONDS) { console.error(`TOO-SHORT ${u.id}  ${v.id}  ${fmt(secs)}  ${v.title}`); bad++; }
   }
   console.error(bad ? `${bad} problem(s).` : `All ${ids.length} videos OK.`);
   process.exitCode = bad ? 1 : 0;

@@ -1,4 +1,4 @@
-// Shrimp — app logic: progress, belt path, unit learn screens, lessons, stripes,
+// Shrimp: app logic for progress, belt path, unit learn screens, lessons, stripes,
 // daily goal, login streak, and weak-spot practice.
 
 const STORAGE_KEY = "shrimp_progress_v1";
@@ -118,6 +118,7 @@ function isLessonUnlocked(lessonId) {
 }
 const isUnitComplete = (unit) => unit.lessons.every((l) => isLessonDone(l.id));
 const isUnitUnlocked = (unit) => isLessonUnlocked(unit.lessons[0].id);
+const hasWatchedAllUnitVideos = (unit) => !unit.videos || unit.videos.length === 0 || unit.videos.every((v) => progress.watched[v.id]);
 const unitsDone = (belt) => { let n = 0; for (const u of belt.units) { if (isUnitComplete(u)) n++; else break; } return n; };
 const beltStripes = (belt) => belt.stripeAfterUnits.filter((t) => unitsDone(belt) >= t).length;
 const isBeltComplete = (belt) => unitsDone(belt) === belt.units.length;
@@ -356,7 +357,10 @@ function renderPath() {
             btn.innerHTML = done ? Brand.icons.check : Brand.icons.play;
             if (done) btn.classList.add("done");
             if (isCurrent) btn.classList.add("current");
-            btn.addEventListener("click", () => startLesson(l.id));
+            btn.addEventListener("click", () => {
+              if (!hasWatchedAllUnitVideos(unit)) { toast("Watch this unit's videos first, then come back."); openLearn(unit); return; }
+              startLesson(l.id);
+            });
           }
           btn.setAttribute("aria-label", l.title);
           if (isCurrent) {
@@ -427,9 +431,24 @@ function openLearn(unit) {
   els.learnEyebrow.textContent = `Unit ${unitIdx}`;
   els.learnHeading.textContent = unit.title;
   els.learnBeltChip.innerHTML = beltChip(belt);
-  els.learnNote.textContent = `${unit.lessons.length} lessons · about ${unit.lessons.length * 3} minutes`;
   renderLearnBody();
   showView("learn");
+}
+
+function renderLearnFooter() {
+  const unit = learnUnit;
+  const hasVideos = unit.videos && unit.videos.length > 0;
+  const ready = hasWatchedAllUnitVideos(unit);
+  if (hasVideos && !ready) {
+    const left = unit.videos.filter((v) => !progress.watched[v.id]).length;
+    els.learnStart.textContent = "Watch all the videos to unlock";
+    els.learnStart.disabled = true;
+    els.learnNote.textContent = `${left} video${left === 1 ? "" : "s"} left to watch`;
+  } else {
+    els.learnStart.textContent = "Start lessons";
+    els.learnStart.disabled = false;
+    els.learnNote.textContent = `${unit.lessons.length} lessons · about ${unit.lessons.length * 3} minutes`;
+  }
 }
 
 function fmtDuration(sec) {
@@ -444,7 +463,7 @@ function renderLearnBody() {
   let html = "";
 
   if (hasVideos) {
-    html += `<p class="learn-intro">Watch these first. ${unit.videos.length} short video${unit.videos.length === 1 ? "" : "s"}, each under five minutes, then the lessons quiz you on them.</p>`;
+    html += `<p class="learn-intro">Watch these first. ${unit.videos.length} video${unit.videos.length === 1 ? "" : "s"} with real teaching, not just a clip. Watch them all to unlock this unit's lessons.</p>`;
     if (learnPlaying) {
       const v = unit.videos.find((x) => x.id === learnPlaying);
       const start = v && v.start ? `&start=${v.start}` : "";
@@ -463,7 +482,7 @@ function renderLearnBody() {
         <div class="video-status${progress.watched[v.id] ? " watched" : ""}">${progress.watched[v.id] ? Brand.icons.check : ""}</div>
       </button>`).join("") + `</div>`;
   } else {
-    html += `<p class="learn-intro">Short videos for this unit are being hand-picked, each under five minutes. Until then, here's what the lessons cover.</p>`;
+    html += `<p class="learn-intro">Videos for this unit are being hand-picked. Until then, here's what the lessons cover.</p>`;
     html += `<div class="video-list">` + unit.lessons.map((l) => `
       <div class="video-card placeholder">
         <div class="video-thumb">${Brand.icons.video.replace("<svg", '<svg width="26" height="26"')}</div>
@@ -473,10 +492,10 @@ function renderLearnBody() {
 
   html += `<div class="key-ideas"><h2>Key ideas</h2><ul>${unit.keyIdeas.map((k) => {
     const text = typeof k === "string" ? k : k.text;
-    const fig = typeof k === "object" && k.figure ? `<div class="key-idea-fig">${Figures.render(k.figure)}</div>` : "";
-    return `<li class="${fig ? "has-fig" : ""}">${fig}<span>${text}</span></li>`;
+    return `<li><span>${text}</span></li>`;
   }).join("")}</ul></div>`;
   els.learnBody.innerHTML = html;
+  renderLearnFooter();
 
   els.learnBody.querySelectorAll(".video-card[data-video]").forEach((card) => {
     card.addEventListener("click", () => {
@@ -490,6 +509,7 @@ function renderLearnBody() {
 }
 
 function startFromLearn() {
+  if (!hasWatchedAllUnitVideos(learnUnit)) return;
   const next = learnUnit.lessons.find((l) => !isLessonDone(l.id) && isLessonUnlocked(l.id));
   if (next) startLesson(next.id);
   else showView("path");
@@ -517,18 +537,8 @@ function prepareQuestions(items) {
 }
 
 // A lesson teaches what it's about to quiz: any written intro the lesson defines,
-// plus an auto flashcard for every position it quizzes (name, illustration, caption).
 function buildTeachCards(lesson) {
-  const cards = (lesson.teach || []).map((t) => ({ eyebrow: "Learn", title: t.title, body: t.body }));
-  const seen = new Set();
-  lesson.questions.forEach((q) => {
-    if (q.type === "position" && !seen.has(q.position)) {
-      seen.add(q.position);
-      const p = Figures.POSITIONS[q.position];
-      if (p) cards.push({ eyebrow: "Learn the position", title: p.name, body: p.caption, position: q.position });
-    }
-  });
-  return cards;
+  return (lesson.teach || []).map((t) => ({ eyebrow: "Learn", title: t.title, body: t.body }));
 }
 
 function startLesson(lessonId) {
@@ -574,10 +584,6 @@ function renderTeach() {
   c.innerHTML = "";
   c.insertAdjacentHTML("beforeend", `<div class="eyebrow">${t.eyebrow}</div>`);
   c.insertAdjacentHTML("beforeend", `<div class="question-prompt">${t.title}</div>`);
-  if (t.position) {
-    c.insertAdjacentHTML("beforeend", `<div class="illustration-card">${Figures.render(t.position)}
-      <div class="legend"><span><i style="background:#EF6A4D"></i>You</span><span><i style="background:#1B2A3A"></i>Partner</span></div></div>`);
-  }
   if (t.body) c.insertAdjacentHTML("beforeend", `<p class="teach-body">${t.body}</p>`);
 }
 
@@ -602,7 +608,7 @@ function renderQuestion() {
   els.feedbackBanner.classList.add("hidden");
   els.actionBtn.textContent = "Check";
   els.actionBtn.disabled = true;
-  els.actionBtn.classList.toggle("hidden", q.type === "mc" || q.type === "position");
+  els.actionBtn.classList.toggle("hidden", q.type === "mc");
   session.answered = false; session.selected = null; session.seqAnswer = [];
 
   const c = els.questionContainer;
@@ -610,19 +616,12 @@ function renderQuestion() {
 
   if (session.mode === "practice" && (progress.misses[q.qid] || 0) > 0) {
     c.insertAdjacentHTML("beforeend", `<div class="eyebrow weak">Weak spot</div>`);
-  } else if (q.type === "position") {
-    c.insertAdjacentHTML("beforeend", `<div class="eyebrow">Name the position</div>`);
   }
   c.insertAdjacentHTML("beforeend", `<div class="question-prompt">${q.prompt}</div>`);
 
-  if (q.type === "position") {
-    c.insertAdjacentHTML("beforeend", `<div class="illustration-card">${Figures.render(q.position)}
-      <div class="legend"><span><i style="background:#EF6A4D"></i>You</span><span><i style="background:#1B2A3A"></i>Partner</span></div></div>`);
-  }
-
-  if (q.type === "mc" || q.type === "position") {
+  if (q.type === "mc") {
     const list = document.createElement("div");
-    list.className = q.type === "position" ? "choice-grid" : "choice-list";
+    list.className = "choice-list";
     q.choices.forEach((text, i) => {
       const b = document.createElement("button");
       b.className = "choice-btn";

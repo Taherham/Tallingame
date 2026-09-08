@@ -1,8 +1,8 @@
 # Shrimp
 
 Jiu-jitsu, one small move at a time. A Duolingo-style learning app for
-Brazilian Jiu-Jitsu hobbyists: a belt-based lesson path, short curated videos
-per unit, quizzes with illustrated positions, hearts, XP, streaks, and stripes.
+Brazilian Jiu-Jitsu hobbyists: a belt-based lesson path, curated videos per
+unit, quizzes, hearts, XP, streaks, and stripes.
 
 Named after the hip escape: the first movement every white belt learns and
 never stops drilling. Works for gi and no-gi.
@@ -24,12 +24,14 @@ rather than opening the file directly when testing the Learn screens.
 - **Belts and units.** White belt (survival and fundamentals) and blue belt
   (systems and depth), nine units each, three lessons per unit. Lessons unlock
   in order.
-- **Learn screens.** Every unit opens with hand-picked YouTube videos, each
-  under five minutes, plus three key ideas. Videos are embedded with YouTube's
-  own player; nothing is re-hosted.
-- **Lessons.** Four questions each: multiple choice, step sequencing, and
-  "name the position" questions with illustrated figure pairs. Coral is always
-  you; ink is always the partner.
+- **Learn screens.** Every unit opens with hand-picked YouTube videos (3 to 15
+  minutes, long enough to actually teach the material in one watch), plus
+  three key ideas. Videos are embedded with YouTube's own player; nothing is
+  re-hosted. All of a unit's videos must be watched before its lessons unlock.
+- **Teach cards.** A lesson can define a short `teach` intro (title + body)
+  shown before its questions start, for concepts that need a sentence of
+  framing rather than a video.
+- **Lessons.** Four questions each: multiple choice and step sequencing.
 - **Stripes.** Each belt has four stripes. Finishing units 2, 4, 6 and 8 earns
   one; finishing all nine promotes you to the next belt. The mascot's belt
   ranks up with you.
@@ -90,7 +92,6 @@ and XP takes the higher value (never summed).
 index.html          page shell (path, learn, lesson, results)
 style.css           brand tokens, light + dark themes
 js/brand.js         mascot, icon mark, icon set, belt graphic
-js/figures.js       position illustration renderer + position data
 js/white.js         white belt units, lessons, questions, video slots
 js/blue.js          blue belt units, lessons, questions, video slots
 js/curriculum.js    belt metadata and stripe thresholds
@@ -110,23 +111,23 @@ Units and lessons live in `js/white.js` and `js/blue.js`. A lesson is:
 {
   id: "w2a",
   title: "Shrimping",
+  teach: [
+    { title: "...", body: "..." },
+  ],
   questions: [
     { type: "mc", prompt: "...", choices: ["...", "..."], answer: 0 },
     { type: "sequence", prompt: "...", steps: ["first", "second", "third"] },
-    { type: "position", position: "mount", prompt: "...", choices: ["Mount", "..."], answer: 0 },
   ],
 }
 ```
 
 `answer` is the index into `choices` as written; the app shuffles choices at
-runtime. Positions available for `position` questions are the keys of
-`POSITIONS` in `js/figures.js`. Adding a position is adding coordinates, not
-drawing: two figures, each with a head, torso, and near/far arm and leg chains.
+runtime. `teach` is optional: a short intro shown before the first question.
 
 ## Curating videos
 
 Videos are picked offline so there is no API key in the page and every clip is
-reviewed by a human.
+reviewed by a human. Never pick Gracie-affiliated channels.
 
 1. Get a YouTube Data API v3 key from Google Cloud and restrict it to that API.
 2. Search and shortlist (about 7,200 of the free 10,000 daily quota units):
@@ -136,8 +137,9 @@ reviewed by a human.
    ```
 
    This writes `shrimp/tools/shortlist.json` with up to four chosen videos and
-   eight alternates per unit, all embeddable and under five minutes, ranked with
-   a boost for trusted instructional channels.
+   eight alternates per unit, all embeddable and 3 to 15 minutes long (long
+   enough to actually teach the material in one watch), ranked with a boost
+   for trusted instructional channels.
 3. Edit the shortlist if you want to swap any picks, then apply:
 
    ```
