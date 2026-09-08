@@ -59,6 +59,19 @@ const WHITE_UNITS = [
           { type: "mc", prompt: "Why do belt promotions usually take years, not months?", choices: ["Live sparring against a resisting partner takes real time to develop", "Belts are given for money", "It's random", "Coaches forget to promote people"], answer: 0 },
         ],
       },
+      {
+        id: "w1d",
+        title: "Training smart",
+        teach: [
+          { title: "Don't be \"spazzy\"", body: "Spazzy means rolling frantically, using panic and strength instead of technique and control. It's the fastest way to hurt a training partner and the biggest tell of a first-week white belt." },
+        ],
+        questions: [
+          { type: "mc", prompt: "Rolling \"spazzy\" means:", choices: ["Moving frantically with strength and panic instead of technique and control", "Rolling too slowly and cautiously", "Only playing guard the whole round", "Refusing to attack any submissions"], answer: 0 },
+          { type: "mc", prompt: "Why is spazzy rolling especially risky for your partner?", choices: ["Uncontrolled, explosive movement is what causes most training injuries, not skill", "It makes you lose the round automatically", "It's against most academies' written rules", "It only risks you, never them"], answer: 0 },
+          { type: "mc", prompt: "The realistic goal for your first year of training is:", choices: ["Build a technical base you can trust for decades, not win every roll", "Submit every blue belt you roll with", "Get promoted as fast as possible", "Avoid ever getting swept or passed"], answer: 0 },
+          { type: "mc", prompt: "A new student keeps trying to out-muscle everyone. A better approach is:", choices: ["Match your partner's pace and lean on technique over strength", "Always go at full speed and full strength", "Only roll with people much smaller than you", "Stop rolling until you're much stronger"], answer: 0 },
+        ],
+      },
     ],
   },
   {
@@ -194,6 +207,9 @@ const WHITE_UNITS = [
       {
         id: "w4a",
         title: "Mount escapes",
+        teach: [
+          { title: "Frames come first", body: "A frame is a straight bone (forearm, shin, foot) braced against their body to hold distance without burning strength. Every escape runs the same sequence: frame, make space, then move your hips into it." },
+        ],
         questions: [
           { type: "sequence", prompt: "Order the bridge-and-roll (upa) escape:", steps: ["Trap one arm and the foot on the same side", "Bridge hard over that shoulder", "Roll them over", "Land inside their guard"] },
           { type: "mc", prompt: "The elbow-knee escape from mount works by:", choices: ["Shrimping and sliding your knee inside to recover half or full guard", "Pushing their chest with both hands", "Bridging straight up", "Rolling onto your stomach"], answer: 0 },
